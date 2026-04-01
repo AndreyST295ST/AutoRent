@@ -1,0 +1,507 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <!-- Meta Tags -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="description" content="AutoRent — Прокат автомобилей с доставкой. Более 50 авто в наличии. Бронируйте онлайн за 2 минуты." />
+  <meta name="keywords" content="прокат автомобилей, аренда авто, rent a car, автомобиль напрокат, авто в аренду" />
+  <meta name="author" content="AutoRent Team" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="AutoRent — Прокат автомобилей" />
+  <meta property="og:description" content="Аренда автомобилей с доставкой и полным сервисом. Бронируйте онлайн!" />
+  <meta property="og:image" content="/assets/images/logo.svg" />
+  <meta property="og:url" content="https://autorent.ru" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/assets/images/logo.svg" />
+  
+  <!-- Title -->
+  <title>AutoRent — Прокат автомобилей | Аренда авто онлайн</title>
+  
+  <!-- Preconnect to external resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="stylesheet" href="/assets/css/components.css" />
+  <link rel="stylesheet" href="/assets/css/utilities.css" />
+  
+  <!-- Scripts (deferred for performance) -->
+  <script src="/assets/js/main.js" defer></script>
+  <script src="/assets/js/api.js" defer></script>
+  
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CarRentalBusiness",
+    "name": "AutoRent",
+    "description": "Сервис проката автомобилей с доставкой и полным сервисом",
+    "url": "https://autorent.ru",
+    "logo": "https://autorent.ru/assets/images/logo.png",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+7-999-123-45-67",
+      "contactType": "customer service",
+      "availableLanguage": "Russian"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "ул. Вавилова, 12",
+      "addressLocality": "Омск",
+      "postalCode": "644007",
+      "addressCountry": "RU"
+    },
+    "openingHours": "Пн-Вс 9:00-19:00",
+    "priceRange": "₽₽"
+  }
+  </script>
+  
+  <!-- Inline Critical CSS (for faster first paint) -->
+  <style>
+    /* Critical above-the-fold styles */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #f9fafb; color: #111827; line-height: 1.5; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
+    .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4rem 0; text-align: center; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn--primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+    .loader { display: none; }
+    .loader--visible { display: flex; }
+  </style>
+</head>
+
+<body>
+  <!-- Skip Link for Accessibility -->
+  <a href="#main-content" class="skip-link">Перейти к основному содержимому</a>
+
+  <!-- Header Component -->
+  <header class="header" role="banner" id="header">
+    <div class="container header__container">
+      <!-- Logo -->
+      <a href="/" class="logo" aria-label="AutoRent главная страница">
+        <span class="logo__icon" aria-hidden="true">🚗</span>
+        <span class="logo__text">AutoRent</span>
+      </a>
+      
+      <!-- Main Navigation -->
+      <nav class="nav" id="mainNav" role="navigation" aria-label="Основная навигация">
+        <a href="/pages/Catalog.html" class="nav__link nav__link--active">📋 Каталог</a>
+        <a href="/pages/MyBookings.html" class="nav__link">📅 Бронирования</a>
+        <a href="/pages/Profile.html" class="nav__link">👤 Профиль</a>
+        <a href="/pages/Admin.html" class="nav__link nav__link--admin" style="display:none" data-role="employee,admin">⚙️ Админка</a>
+      </nav>
+      
+      <!-- User Menu -->
+      <div class="user-menu" id="userMenu" aria-live="polite">
+        <!-- Will be populated by JavaScript -->
+        <div class="auth-buttons">
+          <a href="/pages/Login.html" class="btn btn--outline btn--sm">Войти</a>
+          <a href="/pages/Register.html" class="btn btn--primary btn--sm">Регистрация</a>
+        </div>
+      </div>
+      
+      <!-- Mobile Menu Toggle -->
+      <button 
+        class="btn btn--icon mobile-toggle" 
+        id="mobileToggle" 
+        aria-label="Меню" 
+        aria-expanded="false"
+        aria-controls="mainNav"
+        type="button"
+      >
+        ☰
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content" class="main" role="main">
+    
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container">
+        <h1 id="hero-title" class="hero__title">
+          Найдите идеальный автомобиль
+        </h1>
+        <p class="hero__subtitle">
+          Более 50 автомобилей в наличии. Бронируйте онлайн за 2 минуты.
+        </p>
+        
+        <!-- Quick Search Form -->
+        <div class="search-bar" role="search" aria-label="Быстрый поиск автомобилей">
+          <div class="search-bar__group">
+            <label for="searchStart" class="visually-hidden">Дата начала аренды</label>
+            <input 
+              type="date" 
+              id="searchStart" 
+              class="input" 
+              aria-required="true"
+              min=""
+            />
+            <span class="search-bar__label">📅 Дата начала</span>
+          </div>
+          
+          <div class="search-bar__group">
+            <label for="searchEnd" class="visually-hidden">Дата окончания аренды</label>
+            <input 
+              type="date" 
+              id="searchEnd" 
+              class="input" 
+              aria-required="true"
+              min=""
+            />
+            <span class="search-bar__label">📅 Дата окончания</span>
+          </div>
+          
+          <div class="search-bar__group">
+            <label for="searchBrand" class="visually-hidden">Марка автомобиля</label>
+            <select id="searchBrand" class="input" aria-label="Выберите марку автомобиля">
+              <option value="">Все марки</option>
+              <option value="Toyota">Toyota</option>
+              <option value="BMW">BMW</option>
+              <option value="Mercedes">Mercedes</option>
+              <option value="Hyundai">Hyundai</option>
+              <option value="Kia">Kia</option>
+              <option value="Volkswagen">Volkswagen</option>
+            </select>
+            <span class="search-bar__label">🚙 Марка</span>
+          </div>
+          
+          <button 
+            class="btn btn--primary btn--lg" 
+            id="searchBtn" 
+            type="button"
+            aria-label="Поиск автомобилей"
+          >
+            🔍 Найти
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats" aria-labelledby="stats-title">
+      <div class="container">
+        <h2 id="stats-title" class="visually-hidden">Статистика сервиса</h2>
+        <div class="stats__grid">
+          <div class="stat-card">
+            <span class="stat-card__value" aria-label="50 плюс автомобилей">50+</span>
+            <span class="stat-card__label">Автомобилей</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value" aria-label="Круглосуточная поддержка">24/7</span>
+            <span class="stat-card__label">Поддержка</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value" aria-label="Рейтинг 4.9 из 5">★ 4.9</span>
+            <span class="stat-card__label">Рейтинг</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value" aria-label="Более 1000 клиентов">1000+</span>
+            <span class="stat-card__label">Клиентов</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Cars Section -->
+    <section class="cars" aria-labelledby="cars-title">
+      <div class="container">
+        <div class="cars__header">
+          <h2 id="cars-title">Популярные автомобили</h2>
+          <a href="/pages/Catalog.html" class="link">Все автомобили →</a>
+        </div>
+        
+        <div class="cars__grid" id="featuredCars" aria-live="polite">
+          <!-- Car cards will be inserted here by JavaScript -->
+          <div class="loader loader--visible" id="carsLoader">
+            <span class="loader__spinner"></span>
+            <span>Загрузка автомобилей...</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits" aria-labelledby="benefits-title">
+      <div class="container">
+        <h2 id="benefits-title">Почему выбирают AutoRent</h2>
+        <div class="benefits__grid">
+          <article class="benefit-card">
+            <span class="benefit-card__icon" aria-hidden="true">📝</span>
+            <h3>Минимум документов</h3>
+            <p>Загрузите документы онлайн один раз и бронируйте авто в пару кликов</p>
+          </article>
+          
+          <article class="benefit-card">
+            <span class="benefit-card__icon" aria-hidden="true">⚡</span>
+            <h3>Быстрое оформление</h3>
+            <p>От бронирования до выдачи — менее 30 минут</p>
+          </article>
+          
+          <article class="benefit-card">
+            <span class="benefit-card__icon" aria-hidden="true">🛡️</span>
+            <h3>Полная страховка</h3>
+            <p>Все автомобили застрахованы по КАСКО и ОСАГО</p>
+          </article>
+          
+          <article class="benefit-card">
+            <span class="benefit-card__icon" aria-hidden="true">🚗</span>
+            <h3>Доставка авто</h3>
+            <p>Привезём автомобиль в удобное для вас место</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta" aria-labelledby="cta-title">
+      <div class="container">
+        <div class="cta__content">
+          <h2 id="cta-title">Готовы начать?</h2>
+          <p>Зарегистрируйтесь сейчас и получите скидку 10% на первую аренду</p>
+          <div class="cta__actions">
+            <a href="/pages/Register.html" class="btn btn--primary btn--lg">
+              Зарегистрироваться
+            </a>
+            <a href="/pages/Catalog.html" class="btn btn--outline btn--lg">
+              Смотреть каталог
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer Component -->
+  <footer class="footer" role="contentinfo" id="footer">
+    <div class="container footer__container">
+      <div class="footer__section">
+        <h4>AutoRent</h4>
+        <p>Прокат автомобилей с доставкой и полным сервисом.</p>
+        <div class="social-links">
+          <a href="#" class="social-link" aria-label="Мы ВКонтакте">VK</a>
+          <a href="#" class="social-link" aria-label="Мы в Telegram">TG</a>
+          <a href="#" class="social-link" aria-label="Мы в WhatsApp">WA</a>
+        </div>
+      </div>
+      
+      <div class="footer__section">
+        <h4>Контакты</h4>
+        <address>
+          <p>📞 <a href="tel:+79509504770">+7 (950) 950-47-70</a></p>
+          <p>📧 <a href="mailto:info@autorent.ru">info@autorent.ru</a></p>
+          <p>📍 Омск, ул. Вавилова, 12</p>
+        </address>
+      </div>
+      
+      <div class="footer__section">
+        <h4>Клиентам</h4>
+        <ul class="footer-links">
+          <li><a href="/pages/Catalog.html">Каталог автомобилей</a></li>
+          <li><a href="/pages/MyBookings.html">Мои бронирования</a></li>
+          <li><a href="/pages/Profile.html">Личный кабинет</a></li>
+          <li><a href="/pages/Documents.html">Документы</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer__section">
+        <h4>Документы</h4>
+        <ul class="footer-links">
+          <li><a href="docs/terms.html">Пользовательское соглашение</a></li>
+          <li><a href="docs/privacy.html">Политика конфиденциальности</a></li>
+          <li><a href="docs/offer.html">Договор оферты</a></li>
+          <li><a href="docs/insurance.html">Страховка</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer__bottom">
+      <div class="container">
+        <p>&copy; <span id="currentYear">2024</span> AutoRent. Все права защищены.</p>
+        <p class="footer__disclaimer">
+          Не является публичной офертой. Условия аренды могут отличаться.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Alert Container (for notifications) -->
+  <div id="alertContainer" class="alert-container" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- Loading Overlay (for page transitions) -->
+  <div class="loader-overlay" id="pageLoader" role="status" aria-label="Загрузка" style="display:none">
+    <span class="loader loader--lg"></span>
+    <span class="loader-overlay__text">Загрузка...</span>
+  </div>
+
+  <!-- Cookie Consent Banner -->
+  <div class="cookie-banner" id="cookieBanner" role="alertdialog" aria-labelledby="cookieTitle" style="display:none">
+    <div class="container">
+      <div class="cookie-banner__content">
+        <h3 id="cookieTitle">🍪 Мы используем cookie</h3>
+        <p>
+          Мы используем файлы cookie для улучшения работы сайта и анализа трафика. 
+          Продолжая использовать сайт, вы соглашаетесь с нашей 
+          <a href="docs/privacy.html" target="_blank">политикой конфиденциальности</a>.
+        </p>
+      </div>
+      <div class="cookie-banner__actions">
+        <button class="btn btn--outline btn--sm" id="cookieDecline">Отклонить</button>
+        <button class="btn btn--primary btn--sm" id="cookieAccept">Принять</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application Script -->
+  <script>
+    // Set current year in footer
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+    
+    // Set minimum date for search inputs
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('searchStart').min = today;
+    document.getElementById('searchEnd').min = today;
+    
+    // Search functionality
+    document.getElementById('searchBtn')?.addEventListener('click', () => {
+      const startDate = document.getElementById('searchStart').value;
+      const endDate = document.getElementById('searchEnd').value;
+      const brand = document.getElementById('searchBrand').value;
+      
+      if (!startDate || !endDate) {
+        showAlert('warning', 'Выберите даты аренды', 'Ошибка поиска');
+        return;
+      }
+      
+      // Redirect to catalog with filters
+      const params = new URLSearchParams({
+        start: startDate,
+        end: endDate,
+        brand: brand
+      });
+      window.location.href = `/pages/Catalog.html?${params}`;
+    });
+    
+    // Load featured cars
+    async function loadFeaturedCars() {
+      const container = document.getElementById('featuredCars');
+      const loader = document.getElementById('carsLoader');
+      
+      try {
+        const cars = (await window.carsAPI.getAll()).slice(0, 6);
+        
+        loader.style.display = 'none';
+        if (!Array.isArray(cars) || cars.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <span class="empty-state__icon">🚙</span>
+              <h3>Пока нет доступных автомобилей</h3>
+              <p>Добавьте автомобили в админ-панели, и они появятся здесь</p>
+              <a class="btn btn--primary" href="/pages/Admin.html">Открыть админ-панель</a>
+            </div>
+          `;
+          return;
+        }
+        
+        container.innerHTML = cars.map(car => `
+          <article class="car-card" data-car-id="${car.id}">
+            <div class="car-card__image">
+              <img src="${car.photo_url || car.photos?.[0]?.photoUrl || '/assets/images/logo.svg'}" 
+                   alt="${car.brand} ${car.model}" 
+                   loading="lazy" />
+              <span class="car-card__badge car-card__badge--${car.status}">
+                ${car.status === 'free' ? 'Свободен' : car.status}
+              </span>
+            </div>
+            <div class="car-card__body">
+              <h3 class="car-card__title">${car.brand} ${car.model}</h3>
+              <div class="car-card__specs">
+                <span class="spec">📅 ${car.year}</span>
+                <span class="spec">⚙️ Автомат</span>
+                <span class="spec">⛽ Бензин</span>
+                <span class="spec">👥 5 мест</span>
+              </div>
+              <div class="car-card__footer">
+                <div class="car-card__price">
+                  <span class="price__value">${Number(car.price_per_day || 0).toLocaleString('ru-RU')}</span>
+                  <span class="price__period">/ сутки</span>
+                </div>
+                <button class="btn btn--primary btn--sm" data-action="book" ${car.status !== 'free' ? 'disabled' : ''}>
+                  Забронировать
+                </button>
+              </div>
+            </div>
+          </article>
+        `).join('');
+        
+        // Attach book events
+        container.querySelectorAll('[data-action="book"]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const carId = e.target.closest('.car-card').dataset.carId;
+            window.location.href = `/pages/Booking.html?carId=${carId}`;
+          });
+        });
+        
+      } catch (error) {
+        console.error('Error loading cars:', error);
+        loader.style.display = 'none';
+        container.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-state__icon">😔</span>
+            <h3>Не удалось загрузить автомобили</h3>
+            <p>Попробуйте обновить страницу или позже</p>
+            <button class="btn btn--primary" onclick="location.reload()">Обновить</button>
+          </div>
+        `;
+      }
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFeaturedCars();
+      
+      // Check for cookie consent
+      if (!localStorage.getItem('cookieConsent')) {
+        document.getElementById('cookieBanner').style.display = 'block';
+      }
+      
+      // Cookie banner events
+      document.getElementById('cookieAccept')?.addEventListener('click', () => {
+        localStorage.setItem('cookieConsent', 'accepted');
+        document.getElementById('cookieBanner').style.display = 'none';
+      });
+      
+      document.getElementById('cookieDecline')?.addEventListener('click', () => {
+        localStorage.setItem('cookieConsent', 'declined');
+        document.getElementById('cookieBanner').style.display = 'none';
+      });
+    });
+    
+    // Service Worker Registration (for PWA)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('SW registered:', registration);
+          })
+          .catch(error => {
+            console.log('SW registration failed:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

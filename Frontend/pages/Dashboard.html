@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoRent — Прокат автомобилей</title>
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container header__container">
+      <a href="/" class="logo">
+        <span class="logo__icon">🚗</span>
+        <span class="logo__text">AutoRent</span>
+      </a>
+      
+      <nav class="nav" id="mainNav">
+        <a href="/pages/Catalog.html" class="nav__link nav__link--active">📋 Каталог</a>
+        <a href="/pages/MyBookings.html" class="nav__link">📅 Бронирования</a>
+        <a href="/pages/Profile.html" class="nav__link">👤 Профиль</a>
+        <a href="/pages/Admin.html" class="nav__link nav__link--admin" style="display:none">⚙️ Админка</a>
+      </nav>
+      
+      <div class="user-menu" id="userMenu">
+        <!-- Загружается через JS -->
+      </div>
+      
+      <button class="btn btn--icon mobile-toggle" id="mobileToggle">
+        ☰
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="container">
+      
+      <!-- Welcome Section -->
+      <section class="welcome">
+        <h1 class="welcome__title">Найдите идеальный автомобиль</h1>
+        <p class="welcome__subtitle">Более 50 автомобилей в наличии. Бронируйте онлайн за 2 минуты.</p>
+        
+        <!-- Quick Search -->
+        <div class="search-bar">
+          <div class="search-bar__group">
+            <label>📅 Дата начала</label>
+            <input type="date" id="searchStart" class="input" />
+          </div>
+          <div class="search-bar__group">
+            <label>📅 Дата окончания</label>
+            <input type="date" id="searchEnd" class="input" />
+          </div>
+          <div class="search-bar__group">
+            <label>🚙 Марка</label>
+            <select id="searchBrand" class="input">
+              <option value="">Все марки</option>
+              <option>Toyota</option>
+              <option>BMW</option>
+              <option>Mercedes</option>
+              <option>Hyundai</option>
+            </select>
+          </div>
+          <button class="btn btn--primary btn--lg" id="searchBtn">
+            🔍 Найти
+          </button>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section class="stats">
+        <div class="stats__grid">
+          <div class="stat-card">
+            <span class="stat-card__value">50+</span>
+            <span class="stat-card__label">Автомобилей</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value">24/7</span>
+            <span class="stat-card__label">Поддержка</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value">★ 4.9</span>
+            <span class="stat-card__label">Рейтинг</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value">1000+</span>
+            <span class="stat-card__label">Клиентов</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filters -->
+      <section class="filters">
+        <div class="filters__header">
+          <h2>Фильтры</h2>
+          <button class="btn btn--text" id="resetFilters">Сбросить</button>
+        </div>
+        <div class="filters__grid">
+          <div class="filter-group">
+            <label>Коробка передач</label>
+            <label class="checkbox">
+              <input type="checkbox" name="transmission" value="automatic" />
+              <span>Автомат</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" name="transmission" value="manual" />
+              <span>Механика</span>
+            </label>
+          </div>
+          <div class="filter-group">
+            <label>Тип топлива</label>
+            <label class="checkbox">
+              <input type="checkbox" name="fuel" value="petrol" />
+              <span>Бензин</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" name="fuel" value="diesel" />
+              <span>Дизель</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" name="fuel" value="electric" />
+              <span>Электро</span>
+            </label>
+          </div>
+          <div class="filter-group">
+            <label>Цена за сутки</label>
+            <input type="range" id="priceRange" min="1000" max="20000" step="500" />
+            <div class="price-range__values">
+              <span id="priceMin">1 000 ₽</span>
+              <span id="priceMax">20 000 ₽</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cars Grid -->
+      <section class="cars">
+        <div class="cars__header">
+          <h2>Доступные автомобили</h2>
+          <span class="cars__count" id="carsCount">0 автомобилей</span>
+        </div>
+        
+        <div class="cars__grid" id="carsGrid">
+          <!-- Car cards will be inserted here by JS -->
+        </div>
+        
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+          <button class="btn btn--outline" disabled>← Назад</button>
+          <span class="pagination__info">Страница 1 из 5</span>
+          <button class="btn btn--outline">Вперёд →</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer__container">
+      <div class="footer__section">
+        <h4>AutoRent</h4>
+        <p>Прокат автомобилей с доставкой и полным сервисом.</p>
+      </div>
+      <div class="footer__section">
+        <h4>Контакты</h4>
+        <p>📞 +7 (999) 123-45-67</p>
+        <p>📧 info@autorent.ru</p>
+        <p>📍 Москва, ул. Примерная, 1</p>
+      </div>
+      <div class="footer__section">
+        <h4>Документы</h4>
+        <a href="#">Пользовательское соглашение</a>
+        <a href="#">Политика конфиденциальности</a>
+        <a href="#">Договор оферты</a>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>&copy; 2024 AutoRent. Все права защищены.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/api.js"></script>
+</body>
+</html>
+

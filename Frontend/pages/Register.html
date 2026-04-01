@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Регистрация — AutoRent</title>
+  <meta name="description" content="Регистрация нового пользователя AutoRent"/>
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+<body class="auth-page">
+  <div class="auth-container auth-container--large" role="main">
+    <div class="auth-header">
+      <a href="/" class="logo" aria-label="AutoRent главная страница">
+        <span class="logo__icon" aria-hidden="true">🚗</span>
+        <span class="logo__text">AutoRent</span>
+      </a>
+      <h1>Регистрация</h1>
+      <p>Создайте аккаунт для бронирования автомобилей</p>
+    </div>
+    
+    <form class="auth-form" id="registerForm" novalidate aria-label="Форма регистрации">
+      <div class="form__row">
+        <div class="form__group">
+          <label for="firstName">Имя *</label>
+          <input 
+            type="text" 
+            id="firstName" 
+            name="firstName"
+            class="input" 
+            placeholder="Иван" 
+            required 
+            aria-required="true"
+            minlength="2"
+            maxlength="50"
+          />
+          <span class="error" id="firstNameError" role="alert"></span>
+        </div>
+        
+        <div class="form__group">
+          <label for="lastName">Фамилия *</label>
+          <input 
+            type="text" 
+            id="lastName" 
+            name="lastName"
+            class="input" 
+            placeholder="Иванов" 
+            required 
+            aria-required="true"
+            minlength="2"
+            maxlength="50"
+          />
+          <span class="error" id="lastNameError" role="alert"></span>
+        </div>
+      </div>
+      
+      <div class="form__group">
+        <label for="email">Email *</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email"
+          class="input" 
+          placeholder="your@email.com" 
+          required 
+          aria-required="true"
+          autocomplete="email"
+        />
+        <span class="error" id="emailError" role="alert"></span>
+      </div>
+      
+      <div class="form__group">
+        <label for="phone">Телефон *</label>
+        <input 
+          type="tel" 
+          id="phone" 
+          name="phone"
+          class="input" 
+          placeholder="+7 (999) 123-45-67" 
+          required 
+          aria-required="true"
+          pattern="^\+7\s?\(?\d{3}\)?\s?\d{3}-\d{2}-\d{2}$"
+          autocomplete="tel"
+        />
+        <span class="error" id="phoneError" role="alert"></span>
+      </div>
+      
+      <div class="form__group">
+        <label for="password">Пароль *</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password"
+          class="input" 
+          placeholder="••••••••" 
+          required 
+          aria-required="true"
+          minlength="8"
+          autocomplete="new-password"
+        />
+        <span class="hint">Минимум 8 символов, буквы и цифры</span>
+        <span class="error" id="passwordError" role="alert"></span>
+      </div>
+      
+      <div class="form__group">
+        <label for="confirmPassword">Подтверждение пароля *</label>
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          name="confirmPassword"
+          class="input" 
+          placeholder="••••••••" 
+          required 
+          aria-required="true"
+          autocomplete="new-password"
+        />
+        <span class="error" id="confirmPasswordError" role="alert"></span>
+      </div>
+      
+      <div class="form__group">
+        <label class="checkbox">
+          <input type="checkbox" id="terms" name="terms" required aria-required="true" />
+          <span>Я согласен с <a href="#" target="_blank" class="link">условиями аренды</a> и <a href="#" target="_blank" class="link">политикой конфиденциальности</a> *</span>
+        </label>
+        <span class="error" id="termsError" role="alert"></span>
+      </div>
+      
+      <button type="submit" class="btn btn--primary btn--full btn--lg" id="submitBtn" disabled>
+        Зарегистрироваться
+      </button>
+    </form>
+    
+    <div class="auth-footer">
+      <p>Уже есть аккаунт? <a href="/pages/Login.html" class="link">Войти</a></p>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal" id="successModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display:none">
+    <div class="modal__overlay"></div>
+    <div class="modal__content modal__content--success">
+      <div class="modal__icon" aria-hidden="true">✅</div>
+      <h2 id="modalTitle">Регистрация успешна!</h2>
+      <p>
+        На ваш email отправлено письмо для подтверждения аккаунта.<br>
+        Пожалуйста, проверьте почту и перейдите по ссылке активации.
+      </p>
+      <div class="modal__actions">
+        <button class="btn btn--primary btn--full" onclick="window.location='/pages/Login.html'">
+          Перейти ко входу
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Container -->
+  <div id="alertContainer" class="alert-container" aria-live="assertive"></div>
+
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/register.js"></script>
+</body>
+</html>
+

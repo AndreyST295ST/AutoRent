@@ -1,0 +1,192 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Профиль — AutoRent</title>
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header" role="banner">
+    <div class="container header__container">
+      <a href="/" class="logo">
+        <span class="logo__icon" aria-hidden="true">🚗</span>
+        <span class="logo__text">AutoRent</span>
+      </a>
+      
+      <nav class="nav" id="mainNav" role="navigation">
+        <a href="/pages/Catalog.html" class="nav__link">📋 Каталог</a>
+        <a href="/pages/MyBookings.html" class="nav__link">📅 Бронирования</a>
+        <a href="/pages/Profile.html" class="nav__link nav__link--active">👤 Профиль</a>
+      </nav>
+      
+      <div class="user-menu" id="userMenu"></div>
+    </div>
+  </header>
+
+  <main class="main" role="main">
+    <div class="container">
+      
+      <nav class="breadcrumb" aria-label="Хлебные крошки">
+        <a href="/">Главная</a>
+        <span aria-hidden="true">/</span>
+        <span class="breadcrumb__current" aria-current="page">Профиль</span>
+      </nav>
+
+      <h1 class="page-title">👤 Личный кабинет</h1>
+
+      <div class="profile__layout">
+        
+        <!-- Sidebar -->
+        <aside class="profile__sidebar">
+          <nav class="profile-nav" aria-label="Навигация по профилю">
+            <a href="#personal" class="profile-nav__link profile-nav__link--active" data-section="personal">👤 Личные данные</a>
+            <a href="#documents" class="profile-nav__link" data-section="documents">📄 Документы</a>
+            <a href="#security" class="profile-nav__link" data-section="security">🔒 Безопасность</a>
+            <a href="#notifications" class="profile-nav__link" data-section="notifications">🔔 Уведомления</a>
+            <a href="#history" class="profile-nav__link" data-section="history">📊 История аренд</a>
+          </nav>
+        </aside>
+
+        <!-- Content -->
+        <div class="profile__content">
+          
+          <!-- Personal Info Section -->
+          <section id="personal" class="profile-section" aria-labelledby="personalTitle">
+            <h2 id="personalTitle">Личные данные</h2>
+            <form class="form" id="personalForm">
+              <div class="form__row">
+                <div class="form__group">
+                  <label for="firstName">Имя</label>
+                  <input type="text" id="firstName" class="input" />
+                </div>
+                <div class="form__group">
+                  <label for="lastName">Фамилия</label>
+                  <input type="text" id="lastName" class="input" />
+                </div>
+              </div>
+              <div class="form__row">
+                <div class="form__group">
+                  <label for="email">Email</label>
+                  <input type="email" id="email" class="input" />
+                </div>
+                <div class="form__group">
+                  <label for="phone">Телефон</label>
+                  <input type="tel" id="phone" class="input" />
+                </div>
+              </div>
+              <button type="submit" class="btn btn--primary">Сохранить изменения</button>
+            </form>
+          </section>
+
+          <!-- Documents Section -->
+          <section id="documents" class="profile-section" aria-labelledby="documentsTitle" style="display:none">
+            <h2 id="documentsTitle">Документы</h2>
+            <div class="documents-status" id="documentsStatus">
+              <!-- Will be populated by JS -->
+            </div>
+            <form class="form" id="documentsForm" enctype="multipart/form-data">
+              <div class="form__group">
+                <label for="passport">Паспорт (скан)</label>
+                <input type="file" id="passport" class="input" accept="image/*,.pdf" />
+                <span class="hint">PDF, JPG, PNG. Макс. 5MB</span>
+              </div>
+              <div class="form__group">
+                <label for="license">Водительское удостоверение (скан)</label>
+                <input type="file" id="license" class="input" accept="image/*,.pdf" />
+                <span class="hint">PDF, JPG, PNG. Макс. 5MB</span>
+              </div>
+              <button type="submit" class="btn btn--primary">Загрузить документы</button>
+            </form>
+          </section>
+
+          <!-- Security Section -->
+          <section id="security" class="profile-section" aria-labelledby="securityTitle" style="display:none">
+            <h2 id="securityTitle">Безопасность</h2>
+            <form class="form" id="passwordForm">
+              <div class="form__group">
+                <label for="currentPassword">Текущий пароль</label>
+                <input type="password" id="currentPassword" class="input" />
+              </div>
+              <div class="form__group">
+                <label for="newPassword">Новый пароль</label>
+                <input type="password" id="newPassword" class="input" minlength="8" />
+              </div>
+              <div class="form__group">
+                <label for="confirmPassword">Подтверждение пароля</label>
+                <input type="password" id="confirmPassword" class="input" />
+              </div>
+              <button type="submit" class="btn btn--primary">Изменить пароль</button>
+            </form>
+          </section>
+
+          <!-- Notifications Section -->
+          <section id="notifications" class="profile-section" aria-labelledby="notificationsTitle" style="display:none">
+            <h2 id="notificationsTitle">Уведомления</h2>
+            <form class="form" id="notificationsForm">
+              <label class="checkbox-card">
+                <input type="checkbox" name="notification" value="email" checked />
+                <div class="checkbox-card__content">
+                  <strong>📧 Email-уведомления</strong>
+                  <small>Получать уведомления на email</small>
+                </div>
+              </label>
+              <label class="checkbox-card">
+                <input type="checkbox" name="notification" value="sms" />
+                <div class="checkbox-card__content">
+                  <strong>📱 SMS-уведомления</strong>
+                  <small>Получать SMS о статусе бронирований</small>
+                </div>
+              </label>
+              <label class="checkbox-card">
+                <input type="checkbox" name="notification" value="promotions" />
+                <div class="checkbox-card__content">
+                  <strong>🎁 Акции и скидки</strong>
+                  <small>Получать информацию о специальных предложениях</small>
+                </div>
+              </label>
+              <button type="submit" class="btn btn--primary">Сохранить настройки</button>
+            </form>
+          </section>
+
+          <!-- History Section -->
+          <section id="history" class="profile-section" aria-labelledby="historyTitle" style="display:none">
+            <h2 id="historyTitle">История аренд</h2>
+            <div id="rentalHistory" aria-live="polite">
+              <!-- Will be populated by JS -->
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__container">
+      <div class="footer__section">
+        <h4>AutoRent</h4>
+        <p>Прокат автомобилей с доставкой и полным сервисом.</p>
+      </div>
+      <div class="footer__section">
+        <h4>Контакты</h4>
+        <p>📞 +7 (999) 123-45-67</p>
+        <p>📧 info@autorent.ru</p>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>&copy; 2024 AutoRent. Все права защищены.</p>
+    </div>
+  </footer>
+
+  <!-- Alert Container -->
+  <div id="alertContainer" class="alert-container" aria-live="assertive"></div>
+
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/profile.js"></script>
+</body>
+</html>

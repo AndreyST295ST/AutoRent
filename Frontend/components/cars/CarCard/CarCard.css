@@ -1,0 +1,116 @@
+/* ===== Car Card Base ===== */
+.car-card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.car-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===== Car Image ===== */
+.car-card__image {
+  position: relative;
+  height: 200px;
+  background: var(--gray-200);
+  overflow: hidden;
+}
+
+.car-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.car-card:hover .car-card__image img {
+  transform: scale(1.05);
+}
+
+.car-card__badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.car-card__badge--free {
+  background: var(--success);
+  color: white;
+}
+
+.car-card__badge--rented {
+  background: var(--warning);
+  color: white;
+}
+
+.car-card__badge--maintenance {
+  background: var(--gray-500);
+  color: white;
+}
+
+/* ===== Car Body ===== */
+.car-card__body {
+  padding: 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.car-card__title {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+  color: var(--gray-800);
+}
+
+.car-card__specs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  color: var(--gray-600);
+}
+
+.car-card__description {
+  color: var(--gray-600);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+/* ===== Car Footer ===== */
+.car-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.car-card__price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.price__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-600);
+}
+
+.price__period {
+  color: var(--gray-500);
+  font-size: 0.9rem;
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Доверенность</title>
+  <style>
+    body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 12px; color: #111; margin: 32px; }
+    h1 { font-size: 20px; margin-bottom: 12px; }
+    p { margin: 6px 0; line-height: 1.45; }
+    .block { border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Доверенность на управление ТС</h1>
+  <p>Дата выдачи: {{ generated_date }}</p>
+
+  <div class="block">
+    <p><strong>Доверитель (арендодатель):</strong> AutoRent</p>
+    <p><strong>Доверенное лицо:</strong> {{ client_full_name }}</p>
+    <p><strong>Контакты:</strong> {{ client_phone }} / {{ client_email }}</p>
+    <p><strong>Автомобиль:</strong> {{ car_label }} ({{ car_plate }})</p>
+    <p><strong>Срок действия:</strong> {{ start_date }} - {{ end_date }}</p>
+  </div>
+
+  <p>Настоящей доверенностью доверенному лицу предоставляется право управления указанным транспортным средством в пределах срока аренды.</p>
+
+  <p style="margin-top: 28px;">Подпись доверителя: ____________________</p>
+  <p>Подпись доверенного лица: ____________________</p>
+</body>
+</html>

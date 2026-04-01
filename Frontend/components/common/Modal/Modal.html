@@ -1,0 +1,43 @@
+<div 
+  class="modal {{#if visible}}modal--visible{{/if}}" 
+  id="{{id}}"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="{{titleId}}"
+  aria-describedby="{{descriptionId}}"
+  data-component="modal"
+  {{#unless visible}}style="display:none"{{/unless}}
+>
+  <div class="modal__overlay" data-modal-close tabindex="-1"></div>
+  
+  <div class="modal__content modal__content--{{size}}">
+    
+    {{#if showClose}}
+    <button 
+      class="modal__close" 
+      data-modal-close 
+      aria-label="Закрыть модальное окно"
+      type="button"
+    >
+      &times;
+    </button>
+    {{/if}}
+    
+    {{#if title}}
+    <div class="modal__header">
+      <h2 id="{{titleId}}" class="modal__title">{{title}}</h2>
+    </div>
+    {{/if}}
+    
+    <div class="modal__body" id="{{descriptionId}}">
+      {{{content}}}
+    </div>
+    
+    {{#if footer}}
+    <div class="modal__footer">
+      {{{footer}}}
+    </div>
+    {{/if}}
+    
+  </div>
+</div>

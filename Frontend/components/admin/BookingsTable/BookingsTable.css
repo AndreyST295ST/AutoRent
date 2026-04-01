@@ -1,0 +1,92 @@
+/* ===== Table Base ===== */
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-primary);
+}
+
+.table th,
+.table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.table th {
+  background: var(--gray-50);
+  font-weight: 600;
+  color: var(--gray-700);
+  white-space: nowrap;
+}
+
+.table tbody tr:hover {
+  background: var(--gray-50);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ===== Status Badges ===== */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.badge--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge--confirmed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge--active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge--returned {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.badge--cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ===== Table Actions ===== */
+.table-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.table-actions .btn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* ===== Filters ===== */
+.filters--admin {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.filters--admin .input {
+  width: auto;
+  min-width: 200px;
+}

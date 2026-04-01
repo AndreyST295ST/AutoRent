@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Бронирование - AutoRent</title>
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="container header__container">
+      <a href="/" class="logo">
+        <span class="logo__icon">🚗</span>
+        <span class="logo__text">AutoRent</span>
+      </a>
+      <nav class="nav" id="mainNav">
+        <a href="/pages/Catalog.html" class="nav__link">Каталог</a>
+        <a href="/pages/MyBookings.html" class="nav__link">Бронирования</a>
+        <a href="/pages/Profile.html" class="nav__link">Профиль</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="container">
+      <h1 class="page-title">Оформление бронирования</h1>
+
+      <div class="booking__grid">
+        <div class="booking__form">
+          <div class="card card--highlight">
+            <h3>Автомобиль</h3>
+            <div id="carInfo">Загрузка...</div>
+          </div>
+
+          <div class="card">
+            <h3>Период аренды</h3>
+            <div class="form__row">
+              <div class="form__group">
+                <label for="startDate">Дата начала</label>
+                <input type="date" id="startDate" class="input" required />
+              </div>
+              <div class="form__group">
+                <label for="endDate">Дата окончания</label>
+                <input type="date" id="endDate" class="input" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Дополнительные услуги</h3>
+            <label class="checkbox-card">
+              <input type="checkbox" name="service" value="insurance" />
+              <div class="checkbox-card__content"><strong>Расширенная страховка</strong></div>
+            </label>
+            <label class="checkbox-card">
+              <input type="checkbox" name="service" value="gps" />
+              <div class="checkbox-card__content"><strong>GPS-навигатор</strong></div>
+            </label>
+          </div>
+
+          <div class="card">
+            <label class="checkbox">
+              <input type="checkbox" id="terms" required />
+              <span>Я согласен с условиями аренды</span>
+            </label>
+          </div>
+        </div>
+
+        <aside class="booking__summary">
+          <div class="card card--sticky">
+            <h3>Стоимость</h3>
+            <div class="price-row">
+              <span>Итого:</span>
+              <span id="grandTotal" class="price__grand">0 ₽</span>
+            </div>
+            <button class="btn btn--primary btn--full btn--lg" id="submitBtn" disabled>
+              Оформить бронирование
+            </button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <div id="alertContainer" class="alert-container" aria-live="assertive"></div>
+
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const carId = params.get("carId");
+    let car = null;
+
+    function calculateDays(startDate, endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+      return Math.max(diff, 1);
+    }
+
+    function calculateTotal() {
+      if (!car) return;
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const terms = document.getElementById("terms").checked;
+      if (!startDate || !endDate) {
+        document.getElementById("grandTotal").textContent = "0 ₽";
+        document.getElementById("submitBtn").disabled = true;
+        return;
+      }
+
+      const days = calculateDays(startDate, endDate);
+      let total = Number(car.price_per_day || 0) * days;
+      if (document.querySelector('input[value="insurance"]').checked) total += 1000 * days;
+      if (document.querySelector('input[value="gps"]').checked) total += 300 * days;
+
+      document.getElementById("grandTotal").textContent = window.Utils.formatCurrency(total);
+      document.getElementById("submitBtn").disabled = !terms;
+    }
+
+    async function loadCarInfo() {
+      if (!carId) {
+        document.getElementById("carInfo").innerHTML = "<p class='error'>Не выбран автомобиль</p>";
+        return;
+      }
+      try {
+        car = await window.carsAPI.getById(carId);
+        document.getElementById("carInfo").innerHTML = `
+          <h4>${car.brand} ${car.model}</h4>
+          <p>${car.year || ""} | ${car.transmission || ""} | ${car.fuel_type || ""}</p>
+          <p class="price__value">${window.Utils.formatCurrency(car.price_per_day)} / сутки</p>
+        `;
+      } catch (error) {
+        document.getElementById("carInfo").innerHTML = "<p class='error'>Ошибка загрузки автомобиля</p>";
+      }
+    }
+
+    document.getElementById("submitBtn").addEventListener("click", async () => {
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const submitBtn = document.getElementById("submitBtn");
+      if (!startDate || !endDate) {
+        window.Utils.showNotification("warning", "Выберите даты аренды");
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Обработка...";
+      try {
+        const additionalServices = {
+          insurance: document.querySelector('input[value="insurance"]').checked,
+          gps: document.querySelector('input[value="gps"]').checked,
+        };
+        const booking = await window.bookingsAPI.create({
+          car_id: Number(carId),
+          start_date: startDate,
+          end_date: endDate,
+          additional_services: additionalServices,
+        });
+        window.Utils.showNotification("success", `Бронь #${booking.id} создана`);
+        setTimeout(() => {
+          window.location.href = "/pages/MyBookings.html";
+        }, 900);
+      } catch (error) {
+        window.Utils.showNotification("error", error.message, "Ошибка бронирования");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Оформить бронирование";
+      }
+    });
+
+    ["startDate", "endDate", "terms"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("change", calculateTotal);
+    });
+    document.querySelectorAll('input[name="service"]').forEach((cb) => {
+      cb.addEventListener("change", calculateTotal);
+    });
+
+    loadCarInfo().then(calculateTotal);
+  </script>
+</body>
+</html>
+
+

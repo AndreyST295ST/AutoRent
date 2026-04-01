@@ -1,0 +1,115 @@
+﻿services:
+  # ===== Backend (FastAPI) =====
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: autorent-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://autorent_user:autorent_password@db:5432/autorent
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - EMAIL_FROM=${EMAIL_FROM:-noreply@autorent.ru}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+      - DEBUG=${DEBUG:-True}
+    volumes:
+      - ./Backend/app:/app/app
+      - ./Backend/models:/app/models
+      - ./Backend/schemas:/app/schemas
+      - ./Backend/migrations:/app/migrations
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - autorent-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===== Frontend (Nginx) =====
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: autorent-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+      - "${FRONTEND_SSL_PORT:-443}:443"
+    volumes:
+      - ./Frontend:/usr/share/nginx/html:ro
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - autorent-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===== Database (PostgreSQL) =====
+  db:
+    image: postgres:15-alpine
+    container_name: autorent-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=autorent
+      - POSTGRES_USER=autorent_user
+      - POSTGRES_PASSWORD=autorent_password
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - autorent-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autorent_user -d autorent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===== pgAdmin (РѕРїС†РёРѕРЅР°Р»СЊРЅРѕ, РґР»СЏ СЂР°Р·СЂР°Р±РѕС‚РєРё) =====
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: autorent-pgadmin
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@autorent.ru
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+    networks:
+      - autorent-network
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  uploads:
+    driver: local
+
+networks:
+  autorent-network:
+    driver: bridge
+

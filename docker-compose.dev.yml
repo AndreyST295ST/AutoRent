@@ -1,0 +1,18 @@
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    command: uvicorn App.main:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ./Backend:/app
+    environment:
+      - DEBUG=True
+    profiles:
+      - dev
+
+  frontend:
+    volumes:
+      - ./Frontend:/usr/share/nginx/html:ro
+    profiles:
+      - dev

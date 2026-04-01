@@ -1,0 +1,36 @@
+<div class="form__group" data-component="input-group">
+  <label for="{{id}}" class="form__label">
+    {{label}}
+    {{#if required}}<span class="required" aria-hidden="true">*</span>{{/if}}
+  </label>
+  
+  <input 
+    type="{{type}}" 
+    id="{{id}}" 
+    name="{{name}}"
+    class="input {{#if error}}input--error{{/if}}"
+    placeholder="{{placeholder}}"
+    {{#if required}}required{{/if}}
+    {{#if disabled}}disabled{{/if}}
+    {{#if readonly}}readonly{{/if}}
+    {{#if value}}value="{{value}}"{{/if}}
+    {{#if minLength}}minlength="{{minLength}}"{{/if}}
+    {{#if maxLength}}maxlength="{{maxLength}}"{{/if}}
+    {{#if pattern}}pattern="{{pattern}}"{{/if}}
+    {{#if min}}min="{{min}}"{{/if}}
+    {{#if max}}max="{{max}}"{{/if}}
+    {{#if step}}step="{{step}}"{{/if}}
+    {{#if autocomplete}}autocomplete="{{autocomplete}}"{{/if}}
+    aria-required="{{required}}"
+    aria-invalid="{{#if error}}true{{else}}false{{/if}}"
+    aria-describedby="{{#if error}}{{id}}Error{{else}}{{hintId}}{{/if}}"
+  />
+  
+  {{#if hint}}
+    <span id="{{hintId}}" class="hint">{{hint}}</span>
+  {{/if}}
+  
+  {{#if error}}
+    <span id="{{id}}Error" class="error" role="alert" aria-live="polite">{{error}}</span>
+  {{/if}}
+</div>

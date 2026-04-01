@@ -1,0 +1,110 @@
+/* ===== Form Group ===== */
+.form__group {
+  margin-bottom: 1.5rem;
+}
+
+.form__label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  font-size: 0.95rem;
+}
+
+.form__label .required {
+  color: var(--danger);
+  margin-left: 0.25rem;
+}
+
+/* ===== Input Base ===== */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--gray-800);
+  background: var(--bg-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input::placeholder {
+  color: var(--gray-400);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input:disabled {
+  background: var(--gray-100);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.input:read-only {
+  background: var(--gray-50);
+}
+
+/* ===== Input States ===== */
+.input--error {
+  border-color: var(--danger);
+}
+
+.input--error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.input--success {
+  border-color: var(--success);
+}
+
+/* ===== Hint & Error ===== */
+.hint {
+  display: block;
+  color: var(--gray-500);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.error {
+  display: block;
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* ===== Input Types ===== */
+.input[type="date"],
+.input[type="datetime-local"],
+.input[type="time"] {
+  min-width: 200px;
+}
+
+.input[type="file"] {
+  padding: 0.5rem;
+}
+
+.input[type="checkbox"],
+.input[type="radio"] {
+  width: auto;
+  margin-right: 0.5rem;
+}
+
+/* ===== Form Row ===== */
+.form__row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .form__row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Вход - AutoRent</title>
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+<body class="auth-page">
+  <div class="auth-container">
+    <div class="auth-header">
+      <a href="/" class="logo">
+        <span class="logo__icon">🚗</span>
+        <span class="logo__text">AutoRent</span>
+      </a>
+      <h1>Вход в систему</h1>
+    </div>
+
+    <form id="loginForm" class="auth-form">
+      <div class="form__group">
+        <label for="email">Email</label>
+        <input type="email" id="email" class="input" required placeholder="your@email.com" />
+        <span class="error" id="emailError"></span>
+      </div>
+
+      <div class="form__group">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" class="input" required />
+        <span class="error" id="passwordError"></span>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--full btn--lg" id="submitBtn">
+        Войти
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Нет аккаунта? <a href="/pages/Register.html">Зарегистрироваться</a></p>
+    </div>
+  </div>
+
+  <div id="alertContainer" class="alert-container" aria-live="assertive"></div>
+
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const submitBtn = document.getElementById("submitBtn");
+      const emailError = document.getElementById("emailError");
+      emailError.textContent = "";
+
+      if (!email || !email.includes("@")) {
+        emailError.textContent = "Введите корректный email";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Вход...";
+
+      try {
+        const response = await window.authAPI.login({ email, password });
+        window.api.setToken(response.access_token);
+        window.Utils.setToken(response.access_token);
+        window.Utils.setCurrentUser(response.user);
+        window.Utils.showNotification("success", "Успешный вход");
+        setTimeout(() => {
+          const role = response?.user?.role;
+          window.location.href =
+            role === "admin" || role === "employee"
+              ? "/pages/Admin.html"
+              : "/pages/Catalog.html";
+        }, 700);
+      } catch (error) {
+        window.Utils.showNotification("error", error.message, "Ошибка входа");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Войти";
+      }
+    });
+  </script>
+</body>
+</html>
+

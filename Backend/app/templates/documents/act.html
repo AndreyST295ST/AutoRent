@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Акт приема-передачи</title>
+  <style>
+    body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 12px; color: #111; margin: 32px; }
+    h1 { font-size: 20px; margin-bottom: 12px; }
+    p { margin: 6px 0; line-height: 1.45; }
+    .block { border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Акт приема-передачи автомобиля</h1>
+  <p>Дата оформления: {{ generated_date }}</p>
+
+  <div class="block">
+    <p><strong>Бронь:</strong> #{{ booking_id }}</p>
+    <p><strong>Клиент:</strong> {{ client_full_name }}</p>
+    <p><strong>Автомобиль:</strong> {{ car_label }}</p>
+    <p><strong>Гос. номер:</strong> {{ car_plate }}</p>
+    <p><strong>Срок аренды:</strong> {{ start_date }} - {{ end_date }}</p>
+  </div>
+
+  <p>Автомобиль передан клиенту в исправном состоянии. Внешние повреждения на момент передачи: отсутствуют.</p>
+  <p>Комплектация и документы проверены сторонами, замечаний нет.</p>
+
+  <p style="margin-top: 28px;">Подпись клиента: ____________________</p>
+  <p>Подпись сотрудника: ____________________</p>
+</body>
+</html>

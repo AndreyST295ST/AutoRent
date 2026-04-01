@@ -1,0 +1,29 @@
+<article class="car-card" data-car-id="{{id}}">
+  <div class="car-card__image">
+    <img src="{{primaryPhoto}}" alt="{{brand}} {{model}}" />
+    <span class="car-card__badge car-card__badge--{{status}}">{{statusLabel}}</span>
+  </div>
+  
+  <div class="car-card__body">
+    <h3 class="car-card__title">{{brand}} {{model}}</h3>
+    
+    <div class="car-card__specs">
+      <span class="spec">📅 {{year}}</span>
+      <span class="spec">⚙️ {{transmissionLabel}}</span>
+      <span class="spec">⛽ {{fuelTypeLabel}}</span>
+      <span class="spec">👥 {{seats}} мест</span>
+    </div>
+    
+    <p class="car-card__description">{{description}}</p>
+    
+    <div class="car-card__footer">
+      <div class="car-card__price">
+        <span class="price__value">{{pricePerDay}}</span>
+        <span class="price__period">/ сутки</span>
+      </div>
+      <button class="btn btn--primary" data-action="book">
+        Забронировать
+      </button>
+    </div>
+  </div>
+</article>

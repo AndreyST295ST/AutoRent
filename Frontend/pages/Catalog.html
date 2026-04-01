@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Каталог - AutoRent</title>
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="container header__container">
+      <a href="/" class="logo">
+        <span class="logo__icon">🚗</span>
+        <span class="logo__text">AutoRent</span>
+      </a>
+      <nav class="nav" id="mainNav">
+        <a href="/pages/Catalog.html" class="nav__link nav__link--active">Каталог</a>
+        <a href="/pages/MyBookings.html" class="nav__link">Бронирования</a>
+        <a href="/pages/Profile.html" class="nav__link">Профиль</a>
+      </nav>
+      <div class="user-menu" id="userMenu"></div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="container">
+      <h1 class="page-title">Каталог автомобилей</h1>
+
+      <div class="filters">
+        <div class="form__group">
+          <label for="startDate">Дата начала</label>
+          <input type="date" id="startDate" class="input" />
+        </div>
+        <div class="form__group">
+          <label for="endDate">Дата окончания</label>
+          <input type="date" id="endDate" class="input" />
+        </div>
+        <button class="btn btn--primary" id="filterBtn">Применить</button>
+      </div>
+
+      <div class="cars__grid" id="carsGrid">
+        <div class="loader">Загрузка...</div>
+      </div>
+    </div>
+  </main>
+
+  <div id="alertContainer" class="alert-container" aria-live="assertive"></div>
+
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script>
+    function getStatusLabel(status) {
+      const labels = {
+        free: "Свободен",
+        rented: "В аренде",
+        maintenance: "На обслуживании",
+        retired: "Списан",
+      };
+      return labels[status] || status;
+    }
+
+    async function loadCars(filters = {}) {
+      const grid = document.getElementById("carsGrid");
+      grid.innerHTML = '<div class="loader">Загрузка автомобилей...</div>';
+
+      try {
+        const cars = await window.carsAPI.getAll(filters);
+        if (!cars.length) {
+          grid.innerHTML = `
+            <div class="empty-state">
+              <h3>Автомобили не найдены</h3>
+              <p>Попробуйте изменить параметры поиска</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = cars
+          .map(
+            (car) => `
+          <article class="car-card" data-car-id="${car.id}">
+            <div class="car-card__body">
+              <h3 class="car-card__title">${car.brand} ${car.model}</h3>
+              <div class="car-card__specs">
+                <span>Год: ${car.year || "-"}</span>
+                <span>КПП: ${car.transmission || "-"}</span>
+                <span>Топливо: ${car.fuel_type || "-"}</span>
+                <span>Статус: ${getStatusLabel(car.status)}</span>
+              </div>
+              <div class="car-card__footer">
+                <div class="car-card__price">${window.Utils.formatCurrency(car.price_per_day)} / сутки</div>
+                <a href="/pages/Booking.html?carId=${car.id}" class="btn btn--primary btn--sm" ${
+                  car.status !== "free" ? "disabled" : ""
+                }>Забронировать</a>
+              </div>
+            </div>
+          </article>
+        `
+          )
+          .join("");
+      } catch (error) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <h3>Ошибка загрузки</h3>
+            <p>${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    document.getElementById("filterBtn").addEventListener("click", () => {
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      loadCars({ start_date: startDate, end_date: endDate });
+    });
+
+    loadCars();
+  </script>
+</body>
+</html>

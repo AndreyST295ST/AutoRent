@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<!-- Компонент Button - используется через JS или как шаблон -->
+<button 
+  class="btn btn--{{variant}} btn--{{size}}" 
+  type="{{type}}"
+  {{#if disabled}}disabled{{/if}}
+  {{#if loading}}aria-busy="true"{{/if}}
+  data-component="button"
+  aria-label="{{ariaLabel}}"
+>
+  {{#if loading}}
+    <span class="btn__loader" aria-hidden="true"></span>
+    <span class="btn__loading-text">{{loadingText}}</span>
+  {{else}}
+    {{text}}
+  {{/if}}
+</button>

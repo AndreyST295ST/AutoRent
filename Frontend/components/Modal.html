@@ -1,0 +1,25 @@
+<div class="modal" id="{{modalId}}" role="dialog" aria-modal="true">
+  <div class="modal__overlay" data-close></div>
+  <div class="modal__content">
+    
+    <div class="modal__header">
+      <h3 class="modal__title">{{title}}</h3>
+      <button class="modal__close" data-close>&times;</button>
+    </div>
+    
+    <div class="modal__body">
+      {{#if loading}}
+        <div class="loader"></div>
+      {{else}}
+        {{{body}}}
+      {{/if}}
+    </div>
+    
+    {{#if footer}}
+    <div class="modal__footer">
+      {{{footer}}}
+    </div>
+    {{/if}}
+    
+  </div>
+</div>

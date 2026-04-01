@@ -1,0 +1,362 @@
+/* ===== Responsive Styles ===== */
+
+/* ===== Mobile First Breakpoints ===== */
+
+/* Small devices (phones, 640px and up) */
+@media (min-width: 640px) {
+  .container {
+    padding: 0 var(--space-6);
+  }
+  
+  .sm\:text-center { text-align: center; }
+  .sm\:flex-row { flex-direction: row; }
+  .sm\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+  
+  .md\:text-left { text-align: left; }
+  .md\:flex-row { flex-direction: row; }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  
+  .md\:hidden { display: none; }
+  .md\:block { display: block; }
+  .md\:flex { display: flex; }
+}
+
+/* Large devices (desktops, 1024px and up) */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 960px;
+  }
+  
+  .lg\:text-center { text-align: center; }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  
+  .lg\:hidden { display: none; }
+  .lg\:block { display: block; }
+  .lg\:flex { display: flex; }
+}
+
+/* Extra large devices (large desktops, 1280px and up) */
+@media (min-width: 1280px) {
+  .container {
+    max-width: var(--container-max);
+  }
+  
+  .xl\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ===== Mobile Specific Styles ===== */
+@media (max-width: 767px) {
+  .nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--primary-600);
+    flex-direction: column;
+    padding: var(--space-4);
+    gap: var(--space-2);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .nav.nav--open {
+    display: flex;
+  }
+  
+  .mobile-toggle {
+    display: block;
+  }
+  
+  .user-menu {
+    display: none;
+  }
+  
+  .hero__title {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .hero__subtitle {
+    font-size: var(--font-size-lg);
+  }
+  
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-bar__group {
+    width: 100%;
+  }
+  
+  .form__row {
+    grid-template-columns: 1fr;
+  }
+  
+  .booking__grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .booking__summary {
+    position: static;
+    order: -1;
+  }
+  
+  .catalog__layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters {
+    margin-bottom: var(--space-6);
+  }
+  
+  .profile__layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile__sidebar {
+    margin-bottom: var(--space-6);
+  }
+  
+  .profile-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  
+  .profile-nav__link {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+  }
+  
+  .cars__grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .benefits__grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cta__actions {
+    flex-direction: column;
+  }
+  
+  .cta__actions .btn {
+    width: 100%;
+  }
+  
+  .footer__container {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  
+  .social-links {
+    justify-content: center;
+  }
+  
+  .cookie-banner__content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .cookie-banner__actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .modal__content {
+    width: 95%;
+    padding: var(--space-4);
+  }
+  
+  .modal__footer,
+  .modal__actions {
+    flex-direction: column;
+  }
+  
+  .modal__footer .btn,
+  .modal__actions .btn {
+    width: 100%;
+  }
+  
+  .table-container {
+    font-size: var(--font-size-sm);
+  }
+  
+  .table th,
+  .table td {
+    padding: var(--space-2);
+  }
+  
+  .error__actions {
+    flex-direction: column;
+  }
+  
+  .error__actions .btn {
+    width: 100%;
+  }
+}
+
+/* ===== Tablet Specific Styles ===== */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .stats__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .benefits__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .cars__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== Desktop Specific Styles ===== */
+@media (min-width: 1024px) {
+  .cars__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .stats__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .benefits__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ===== Print Styles ===== */
+@media print {
+  *,
+  *::before,
+  *::after {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+  
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+  
+  abbr[title]::after {
+    content: " (" attr(title) ")";
+  }
+  
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+  
+  pre {
+    white-space: pre-wrap !important;
+  }
+  
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
+  }
+  
+  thead {
+    display: table-header-group;
+  }
+  
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+  
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+  
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+  
+  .header,
+  .footer,
+  .mobile-toggle,
+  .alert-container,
+  .cookie-banner,
+  .loader-overlay,
+  .nav,
+  .user-menu,
+  .btn,
+  .search-bar {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+    color: black;
+    font-size: 12pt;
+  }
+  
+  .main {
+    padding: 0;
+  }
+  
+  .container {
+    max-width: 100%;
+    padding: 0;
+  }
+  
+  .card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== High Contrast Mode ===== */
+@media (prefers-contrast: high) {
+  :root {
+    --border-light: #000000;
+    --border-medium: #000000;
+    --border-dark: #000000;
+  }
+  
+  .btn--outline {
+    border-width: 3px;
+  }
+}
+
+/* Dark theme overrides are intentionally disabled to keep stable contrast. */

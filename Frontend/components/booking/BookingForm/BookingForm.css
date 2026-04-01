@@ -1,0 +1,151 @@
+/* ===== Booking Form ===== */
+.booking__grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 2rem;
+}
+
+.booking__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.booking__summary {
+  position: sticky;
+  top: 100px;
+  height: fit-content;
+}
+
+.card--sticky {
+  position: sticky;
+  top: 100px;
+}
+
+/* ===== Car Summary ===== */
+.car-summary {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.car-summary__image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+
+.car-summary__info h4 {
+  margin-bottom: 0.5rem;
+}
+
+.car-summary__specs,
+.car-summary__plate {
+  color: var(--gray-600);
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
+}
+
+/* ===== Checkbox Card ===== */
+.checkbox-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 1rem;
+}
+
+.checkbox-card:hover,
+.checkbox-card:has(input:checked) {
+  border-color: var(--primary-500);
+  background: var(--primary-50);
+}
+
+.checkbox-card input {
+  margin-top: 0.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.checkbox-card__content {
+  flex: 1;
+}
+
+.checkbox-card__price {
+  display: block;
+  color: var(--primary-600);
+  font-weight: 600;
+  margin: 0.25rem 0;
+}
+
+/* ===== Price Breakdown ===== */
+.price-breakdown {
+  margin: 1rem 0;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+}
+
+.price-row--border {
+  border-bottom: 1px solid var(--gray-200);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.price-row--total {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-600);
+  border-top: 2px solid var(--gray-300);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
+
+.price__grand {
+  font-size: 1.5rem;
+}
+
+/* ===== Status ===== */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+}
+
+.status--success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status--warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status--error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 968px) {
+  .booking__grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .booking__summary {
+    position: static;
+    order: -1;
+  }
+}

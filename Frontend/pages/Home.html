@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoRent — Прокат автомобилей</title>
+  <meta name="description" content="Аренда автомобилей с доставкой. Более 50 авто в наличии."/>
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="icon" type="image/svg+xml" href="/assets/images/logo.svg" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header" role="banner">
+    <div class="container header__container">
+      <a href="/" class="logo" aria-label="AutoRent главная страница">
+        <span class="logo__icon" aria-hidden="true">🚗</span>
+        <span class="logo__text">AutoRent</span>
+      </a>
+      
+      <nav class="nav" id="mainNav" role="navigation" aria-label="Основная навигация">
+        <a href="/pages/Catalog.html" class="nav__link nav__link--active">📋 Каталог</a>
+        <a href="/pages/MyBookings.html" class="nav__link">📅 Бронирования</a>
+        <a href="/pages/Profile.html" class="nav__link">👤 Профиль</a>
+        <a href="/pages/Admin.html" class="nav__link nav__link--admin" style="display:none">⚙️ Админка</a>
+      </nav>
+      
+      <div class="user-menu" id="userMenu" aria-live="polite">
+        <!-- Загружается через JS -->
+      </div>
+      
+      <button class="btn btn--icon mobile-toggle" id="mobileToggle" aria-label="Меню" aria-expanded="false">
+        ☰
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main" role="main">
+    <div class="container">
+      
+      <!-- Hero Section -->
+      <section class="hero" aria-labelledby="hero-title">
+        <h1 id="hero-title" class="hero__title">Найдите идеальный автомобиль</h1>
+        <p class="hero__subtitle">Более 50 автомобилей в наличии. Бронируйте онлайн за 2 минуты.</p>
+        
+        <!-- Quick Search -->
+        <div class="search-bar" role="search">
+          <div class="search-bar__group">
+            <label for="searchStart">📅 Дата начала</label>
+            <input type="date" id="searchStart" class="input" aria-required="true" />
+          </div>
+          <div class="search-bar__group">
+            <label for="searchEnd">📅 Дата окончания</label>
+            <input type="date" id="searchEnd" class="input" aria-required="true" />
+          </div>
+          <div class="search-bar__group">
+            <label for="searchBrand">🚙 Марка</label>
+            <select id="searchBrand" class="input" aria-label="Выберите марку автомобиля">
+              <option value="">Все марки</option>
+              <option>Toyota</option>
+              <option>BMW</option>
+              <option>Mercedes</option>
+              <option>Hyundai</option>
+              <option>Kia</option>
+            </select>
+          </div>
+          <button class="btn btn--primary btn--lg" id="searchBtn" aria-label="Поиск автомобилей">
+            🔍 Найти
+          </button>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section class="stats" aria-labelledby="stats-title">
+        <h2 id="stats-title" class="visually-hidden">Статистика сервиса</h2>
+        <div class="stats__grid">
+          <div class="stat-card">
+            <span class="stat-card__value" aria-label="50 плюс автомобилей">50+</span>
+            <span class="stat-card__label">Автомобилей</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value" aria-label="Круглосуточная поддержка">24/7</span>
+            <span class="stat-card__label">Поддержка</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value" aria-label="Рейтинг 4.9 из 5">★ 4.9</span>
+            <span class="stat-card__label">Рейтинг</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__value" aria-label="Более 1000 клиентов">1000+</span>
+            <span class="stat-card__label">Клиентов</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Featured Cars -->
+      <section class="cars" aria-labelledby="cars-title">
+        <div class="cars__header">
+          <h2 id="cars-title">Популярные автомобили</h2>
+          <a href="/pages/Catalog.html" class="link">Все автомобили →</a>
+        </div>
+        
+        <div class="cars__grid" id="featuredCars" aria-live="polite">
+          <!-- Car cards will be inserted here by JS -->
+        </div>
+      </section>
+
+      <!-- Benefits -->
+      <section class="benefits" aria-labelledby="benefits-title">
+        <h2 id="benefits-title">Почему выбирают AutoRent</h2>
+        <div class="benefits__grid">
+          <div class="benefit-card">
+            <span class="benefit-card__icon" aria-hidden="true">📝</span>
+            <h3>Минимум документов</h3>
+            <p>Загрузите документы онлайн один раз и бронируйте авто в пару кликов</p>
+          </div>
+          <div class="benefit-card">
+            <span class="benefit-card__icon" aria-hidden="true">⚡</span>
+            <h3>Быстрое оформление</h3>
+            <p>От бронирования до выдачи — менее 30 минут</p>
+          </div>
+          <div class="benefit-card">
+            <span class="benefit-card__icon" aria-hidden="true">🛡️</span>
+            <h3>Полная страховка</h3>
+            <p>Все автомобили застрахованы по КАСКО и ОСАГО</p>
+          </div>
+          <div class="benefit-card">
+            <span class="benefit-card__icon" aria-hidden="true">🚗</span>
+            <h3>Доставка авто</h3>
+            <p>Привезём автомобиль в удобное для вас место</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__container">
+      <div class="footer__section">
+        <h4>AutoRent</h4>
+        <p>Прокат автомобилей с доставкой и полным сервисом.</p>
+      </div>
+      <div class="footer__section">
+        <h4>Контакты</h4>
+        <p>📞 +7 (999) 123-45-67</p>
+        <p>📧 info@autorent.ru</p>
+        <p>📍 Москва, ул. Примерная, 1</p>
+      </div>
+      <div class="footer__section">
+        <h4>Документы</h4>
+        <a href="#" class="link">Пользовательское соглашение</a>
+        <a href="#" class="link">Политика конфиденциальности</a>
+        <a href="#" class="link">Договор оферты</a>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>&copy; 2024 AutoRent. Все права защищены.</p>
+    </div>
+  </footer>
+
+  <!-- Alert Container -->
+  <div id="alertContainer" class="alert-container" aria-live="assertive"></div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/home.js"></script>
+</body>
+</html>
