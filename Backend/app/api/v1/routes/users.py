@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_admin_user, get_current_active_user
 from app.database import get_db
-from models.user import User, UserRole
+from models.user import User, UserRole, UserStatus
 from schemas.user import UserResponse, UserStatusUpdate, UserUpdate
 
 router = APIRouter()
@@ -58,8 +58,14 @@ async def update_user_status(
     user_id: int,
     payload: UserStatusUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_admin_user),
+    current_admin: User = Depends(get_admin_user),
 ):
+    if user_id == current_admin.id and payload.status != UserStatus.ACTIVE:
+        raise HTTPException(
+            status_code=400,
+            detail="Admin cannot block own account",
+        )
+
     user = await db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

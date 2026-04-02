@@ -395,6 +395,24 @@
       window.location.href = `/pages/Catalog.html?${params}`;
     });
     
+    function resolveAssetUrl(url) {
+      if (!url) return null;
+      if (/^https?:\/\//i.test(url) || url.startsWith('blob:')) return url;
+      const normalized = url.startsWith('/') ? url : `/${url}`;
+      try {
+        const base = window.APP_CONFIG?.API_BASE_URL || '';
+        if (base.startsWith('http')) return `${new URL(base).origin}${normalized}`;
+      } catch (_) {}
+      return normalized;
+    }
+
+    function getCarImageUrl(car) {
+      if (Array.isArray(car.photo_urls) && car.photo_urls.length) {
+        return resolveAssetUrl(car.photo_urls[0]);
+      }
+      return '/assets/images/logo.svg';
+    }
+
     // Load featured cars
     async function loadFeaturedCars() {
       const container = document.getElementById('featuredCars');
@@ -419,7 +437,7 @@
         container.innerHTML = cars.map(car => `
           <article class="car-card" data-car-id="${car.id}">
             <div class="car-card__image">
-              <img src="${car.photo_url || car.photos?.[0]?.photoUrl || '/assets/images/logo.svg'}" 
+              <img src="${getCarImageUrl(car)}" 
                    alt="${car.brand} ${car.model}" 
                    loading="lazy" />
               <span class="car-card__badge car-card__badge--${car.status}">
@@ -429,10 +447,10 @@
             <div class="car-card__body">
               <h3 class="car-card__title">${car.brand} ${car.model}</h3>
               <div class="car-card__specs">
-                <span class="spec">📅 ${car.year}</span>
-                <span class="spec">⚙️ Автомат</span>
-                <span class="spec">⛽ Бензин</span>
-                <span class="spec">👥 5 мест</span>
+                <span class="spec">📅 ${car.year || '-'}</span>
+                <span class="spec">⚙️ ${car.transmission || '-'}</span>
+                <span class="spec">⛽ ${car.fuel_type || '-'}</span>
+                <span class="spec">📷 ${Array.isArray(car.photo_urls) ? car.photo_urls.length : 0} фото</span>
               </div>
               <div class="car-card__footer">
                 <div class="car-card__price">

@@ -149,6 +149,7 @@
                 <th>Год</th>
                 <th>Цена/сутки</th>
                 <th>Статус</th>
+                <th>Фото</th>
                 <th>Действия</th>
               </tr>
             </thead>
@@ -272,34 +273,40 @@
         </div>
         <div class="form__row">
           <div class="form__group">
-            <label for="carTransmission">Transmission</label>
+            <label for="carTransmission">Коробка передач</label>
             <select id="carTransmission" class="input">
               <option value="">-</option>
-              <option value="automatic">Automatic</option>
-              <option value="manual">Manual</option>
+              <option value="automatic">Автомат</option>
+              <option value="manual">Механика</option>
             </select>
           </div>
           <div class="form__group">
-            <label for="carFuel">Fuel</label>
+            <label for="carFuel">Топливо</label>
             <select id="carFuel" class="input">
               <option value="">-</option>
-              <option value="petrol">Petrol</option>
-              <option value="diesel">Diesel</option>
-              <option value="hybrid">Hybrid</option>
-              <option value="electric">Electric</option>
+              <option value="petrol">Бензин</option>
+              <option value="diesel">Дизель</option>
+              <option value="hybrid">Гибрид</option>
+              <option value="electric">Электро</option>
             </select>
           </div>
         </div>
         <div class="form__row">
           <div class="form__group">
-            <label for="carSeats">Seats</label>
+            <label for="carSeats">Количество мест</label>
             <input type="number" id="carSeats" class="input" min="2" max="9" />
           </div>
           <div class="form__group">
-            <label for="carDescription">Description</label>
+            <label for="carDescription">Описание</label>
             <input type="text" id="carDescription" class="input" />
           </div>
         </div>
+        <div class="form__group">
+          <label for="carPhotos">Фото автомобиля (можно несколько)</label>
+          <input type="file" id="carPhotos" class="input" accept="image/*" multiple />
+          <span class="hint">При редактировании новые фото добавятся к текущим</span>
+        </div>
+        <div id="carPhotosPreview" class="file-preview"></div>
         <div class="modal__actions">
           <button type="button" class="btn btn--outline" data-close>Отмена</button>
           <button type="submit" class="btn btn--primary">Сохранить</button>

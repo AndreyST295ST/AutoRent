@@ -1,11 +1,11 @@
-﻿/**
+/**
  * AutoRent - API client (global build).
  */
 
 (function () {
   const config = window.APP_CONFIG || {
     API_BASE_URL:
-      window.location.port === "5500" || window.location.port === "3000"
+      window.location.port === "5500"
         ? "http://localhost:8000/api/v1"
         : "/api/v1",
     TOKEN_KEY: "auth_token",
@@ -151,6 +151,11 @@
       api.get("/cars/available", { start_date: startDate, end_date: endDate }),
     create: (data) => api.post("/cars/", data),
     update: (id, data) => api.put(`/cars/${id}`, data),
+    uploadPhotos: (id, files) => {
+      const formData = new FormData();
+      Array.from(files || []).forEach((file) => formData.append("photos", file));
+      return api.upload(`/cars/${id}/photos`, formData);
+    },
     delete: (id) => api.delete(`/cars/${id}`),
     updateStatus: (id, status) => api.patch(`/cars/${id}/status`, { status }),
   };

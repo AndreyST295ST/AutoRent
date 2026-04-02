@@ -35,15 +35,19 @@
     submitBtn.textContent = "Регистрация...";
 
     try {
-      await window.authAPI.register({
+      const registerResponse = await window.authAPI.register({
         first_name: firstName,
         last_name: lastName,
         email,
         phone,
         password,
       });
+      if (registerResponse?.activation_token) {
+        await window.authAPI.activate(registerResponse.activation_token);
+      }
       if (modal) {
-        modal.style.display = "block";
+        modal.style.display = "flex";
+        modal.classList.add("modal--visible");
       } else {
         window.Utils.showNotification("success", "Регистрация завершена");
         setTimeout(() => (window.location.href = "/pages/Login.html"), 1000);
@@ -55,4 +59,3 @@
     }
   });
 });
-

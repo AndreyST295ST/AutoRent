@@ -20,6 +20,8 @@
     carModalTitle: $("carModalTitle"),
     carForm: $("carForm"),
     carId: $("carId"),
+    carPhotos: $("carPhotos"),
+    carPhotosPreview: $("carPhotosPreview"),
     clientDocsModal: $("clientDocsModal"),
     clientDocsModalTitle: $("clientDocsModalTitle"),
     clientDocsModalBody: $("clientDocsModalBody"),
@@ -96,6 +98,28 @@
       link.classList.toggle("nav__link--active", link.dataset.section === sectionId);
     });
   }
+
+  function resolveSectionFromHash() {
+    const fromHash = (window.location.hash || "").replace("#", "").trim();
+    if (!fromHash) return "dashboard";
+    const exists = Array.from(sections).some((section) => section.id === fromHash);
+    return exists ? fromHash : "dashboard";
+  }
+
+  navLinks.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      const targetSection = link.dataset.section || "dashboard";
+      switchSection(targetSection);
+      if (window.location.hash !== `#${targetSection}`) {
+        window.history.replaceState(null, "", `#${targetSection}`);
+      }
+    });
+  });
+
+  window.addEventListener("hashchange", () => {
+    switchSection(resolveSectionFromHash());
+  });
 
   function byCarId(id) {
     return state.cars.find((c) => Number(c.id) === Number(id)) || null;
@@ -208,23 +232,30 @@
     if (!els.carsTable) return;
     const rows = filteredCars();
     if (!rows.length) {
-      els.carsTable.innerHTML = '<tr><td colspan="7" class="text-center">По выбранным фильтрам автомобили не найдены</td></tr>';
+      els.carsTable.innerHTML = '<tr><td colspan="8" class="text-center">По выбранным фильтрам автомобили не найдены</td></tr>';
       return;
     }
     els.carsTable.innerHTML = rows
-      .map((c) => `<tr>
+      .map((c) => {
+        const primaryPhoto = getPrimaryCarPhoto(c);
+        const photosCount = Array.isArray(c.photo_urls) ? c.photo_urls.length : 0;
+        return `<tr>
         <td>${c.id}</td>
         <td>${c.brand} ${c.model}</td>
         <td>${c.license_plate || "-"}</td>
         <td>${c.year || "-"}</td>
         <td>${window.Utils.formatCurrency(c.price_per_day)}</td>
         <td>${statusBadge(c.status)}</td>
+        <td>
+          ${primaryPhoto ? `<a href="${primaryPhoto}" target="_blank" rel="noopener noreferrer">Открыть (${photosCount})</a>` : "Нет"}
+        </td>
         <td style="display:flex; gap:.35rem; flex-wrap:wrap;">
           <button class="btn btn--outline btn--sm" data-action="edit-car" data-id="${c.id}">Редактировать</button>
           <button class="btn btn--outline btn--sm" data-action="toggle-car-status" data-id="${c.id}">${c.status === "free" ? "В обслуживание" : "В свободные"}</button>
           <button class="btn btn--outline btn--sm" data-action="delete-car" data-id="${c.id}">Удалить</button>
         </td>
-      </tr>`)
+      </tr>`;
+      })
       .join("");
   }
 
@@ -311,15 +342,19 @@
       return;
     }
     els.usersTable.innerHTML = state.users
-      .map((u) => `<tr>
+      .map((u) => {
+        const isSelf = Number(u.id) === Number(me?.id);
+        const nextLabel = u.status === "active" ? "Блокировать" : "Активировать";
+        return `<tr>
         <td>${u.id}</td>
         <td>${u.first_name} ${u.last_name}</td>
         <td>${u.email}</td>
         <td>${u.role}</td>
         <td>${statusBadge(u.status)}</td>
         <td>${window.Utils.formatDate(u.created_at || new Date().toISOString())}</td>
-        <td><button class="btn btn--outline btn--sm" data-action="user-toggle-status" data-id="${u.id}">${u.status === "active" ? "Блокировать" : "Активировать"}</button></td>
-      </tr>`)
+        <td><button class="btn btn--outline btn--sm" data-action="user-toggle-status" data-id="${u.id}" ${isSelf ? "disabled" : ""}>${isSelf ? "Это вы" : nextLabel}</button></td>
+      </tr>`;
+      })
       .join("");
   }
 
@@ -330,7 +365,7 @@
     renderDocuments();
     renderUsers();
   }
-  function resolveDocumentUrl(url) {
+  function resolveAssetUrl(url) {
     if (!url) return null;
     if (/^https?:\/\//i.test(url) || url.startsWith("blob:")) return url;
     const normalized = url.startsWith("/") ? url : `/${url}`;
@@ -339,6 +374,11 @@
       if (base.startsWith("http")) return `${new URL(base).origin}${normalized}`;
     } catch (_) {}
     return normalized;
+  }
+
+  function getPrimaryCarPhoto(car) {
+    if (!car || !Array.isArray(car.photo_urls) || !car.photo_urls.length) return null;
+    return resolveAssetUrl(car.photo_urls[0]);
   }
 
   function openClientDocsModal(title, html) {
@@ -372,6 +412,8 @@
     $("carFuel").value = car?.fuel_type || "";
     $("carSeats").value = car?.seats || "";
     $("carDescription").value = car?.description || "";
+    if (els.carPhotos) els.carPhotos.value = "";
+    renderCarPhotosPreview(car?.photo_urls || []);
   }
 
   function closeCarModal() {
@@ -380,6 +422,25 @@
     els.carModal.style.display = "none";
     els.carForm.reset();
     els.carId.value = "";
+    if (els.carPhotosPreview) els.carPhotosPreview.innerHTML = "";
+    if (els.carPhotos) els.carPhotos.value = "";
+  }
+
+  function renderCarPhotosPreview(urls = [], files = []) {
+    if (!els.carPhotosPreview) return;
+    const uploaded = (urls || [])
+      .map((url) => {
+        const resolved = resolveAssetUrl(url);
+        return `<div class="file-preview__item"><a href="${resolved}" target="_blank" rel="noopener noreferrer">${url.split("/").pop()}</a></div>`;
+      })
+      .join("");
+
+    const selected = Array.from(files || [])
+      .map((file) => `<div class="file-preview__item">Новый файл: ${file.name}</div>`)
+      .join("");
+
+    const html = `${uploaded}${selected}`;
+    els.carPhotosPreview.innerHTML = html || '<div class="hint">Фотографии пока не добавлены</div>';
   }
 
   async function openDocumentViewer(clientId, type) {
@@ -388,7 +449,7 @@
     const key = type === "passport" ? "passport_scan_url" : "license_scan_url";
     const url = doc[key];
     if (!url) return window.Utils.showNotification("warning", "Файл документа не загружен");
-    const resolved = resolveDocumentUrl(url);
+    const resolved = resolveAssetUrl(url);
     const title = type === "passport" ? `Паспорт клиента #${clientId}` : `Водительское удостоверение клиента #${clientId}`;
     const html = /\.pdf(\?|$)/i.test(String(resolved))
       ? `<iframe class="doc-preview doc-preview--pdf" src="${resolved}" title="${title}"></iframe>`
@@ -462,6 +523,11 @@
     if (els.carSort) els.carSort.value = "id_desc";
     renderCars();
   });
+  els.carPhotos?.addEventListener("change", () => {
+    const editingId = Number(els.carId?.value || 0);
+    const currentCar = editingId ? state.cars.find((c) => Number(c.id) === editingId) : null;
+    renderCarPhotosPreview(currentCar?.photo_urls || [], els.carPhotos.files);
+  });
 
   els.carModal?.querySelectorAll("[data-close]").forEach((btn) => btn.addEventListener("click", closeCarModal));
   els.carModal?.querySelector(".modal__overlay")?.addEventListener("click", closeCarModal);
@@ -490,11 +556,18 @@
 
     try {
       const editingId = els.carId.value ? Number(els.carId.value) : null;
+      let savedCar = null;
       if (editingId) {
-        await window.carsAPI.update(editingId, payload);
+        savedCar = await window.carsAPI.update(editingId, payload);
       } else {
-        await window.carsAPI.create(payload);
+        savedCar = await window.carsAPI.create(payload);
       }
+
+      const selectedFiles = Array.from(els.carPhotos?.files || []);
+      if (savedCar?.id && selectedFiles.length) {
+        await window.carsAPI.uploadPhotos(savedCar.id, selectedFiles);
+      }
+
       await refreshAfterAction();
       closeCarModal();
       window.Utils.showNotification("success", "Автомобиль сохранен");
@@ -574,6 +647,10 @@
           window.Utils.showNotification("warning", "Только администратор может изменять статус пользователей");
           return;
         }
+        if (Number(id) === Number(me?.id)) {
+          window.Utils.showNotification("warning", "Нельзя изменить статус собственной учетной записи");
+          return;
+        }
         const user = state.users.find((u) => Number(u.id) === id);
         const next = user?.status === "active" ? "blocked" : "active";
         await window.usersAPI.updateStatus(id, next);
@@ -588,7 +665,7 @@
   try {
     await loadData();
     renderAll();
-    switchSection("dashboard");
+    switchSection(resolveSectionFromHash());
   } catch (error) {
     window.Utils.showNotification("error", error.message, "Ошибка загрузки админ-панели");
   }

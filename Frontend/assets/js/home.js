@@ -17,6 +17,25 @@
   }
 
   if (!featuredCars || !window.carsAPI) return;
+
+  const resolveAssetUrl = (url) => {
+    if (!url) return null;
+    if (/^https?:\/\//i.test(url) || url.startsWith("blob:")) return url;
+    const normalized = url.startsWith("/") ? url : `/${url}`;
+    try {
+      const base = window.APP_CONFIG?.API_BASE_URL || "";
+      if (base.startsWith("http")) return `${new URL(base).origin}${normalized}`;
+    } catch (_) {}
+    return normalized;
+  };
+
+  const getCarImageUrl = (car) => {
+    if (Array.isArray(car.photo_urls) && car.photo_urls.length) {
+      return resolveAssetUrl(car.photo_urls[0]);
+    }
+    return "/assets/images/logo.svg";
+  };
+
   try {
     const cars = await window.carsAPI.getAll();
     const top = cars.slice(0, 4);
@@ -24,6 +43,9 @@
       .map(
         (car) => `
       <article class="car-card">
+        <div class="car-card__image">
+          <img src="${getCarImageUrl(car)}" alt="${car.brand} ${car.model}" loading="lazy" />
+        </div>
         <div class="car-card__body">
           <h3 class="car-card__title">${car.brand} ${car.model}</h3>
           <p>${car.year || ""}</p>
@@ -45,4 +67,3 @@
     `;
   }
 });
-

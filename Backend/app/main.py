@@ -1,11 +1,13 @@
-﻿from pathlib import Path
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import inspect, text
 
 from app.api.v1.router import api_router
-from app.database import Base, engine
+from app.database import AsyncSessionLocal, Base, engine
+from app.services.auth_service import AuthService
 from models import booking, car, document, review, user  # noqa: F401
 
 app = FastAPI(title="AutoRent API")
@@ -35,6 +37,26 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+        has_photo_urls = await conn.run_sync(
+            lambda sync_conn: any(
+                column["name"] == "photo_urls"
+                for column in inspect(sync_conn).get_columns("cars")
+            )
+        )
+
+        if not has_photo_urls:
+            if conn.dialect.name == "postgresql":
+                await conn.execute(
+                    text("ALTER TABLE cars ADD COLUMN photo_urls JSON NOT NULL DEFAULT '[]'::json")
+                )
+            else:
+                await conn.execute(
+                    text("ALTER TABLE cars ADD COLUMN photo_urls JSON NOT NULL DEFAULT '[]'")
+                )
+
+    async with AsyncSessionLocal() as session:
+        await AuthService(session).ensure_demo_admin()
 
 
 @app.get("/health")

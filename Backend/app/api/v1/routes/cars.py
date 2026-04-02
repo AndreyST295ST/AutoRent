@@ -1,15 +1,31 @@
-﻿from datetime import datetime
+from datetime import datetime
+from pathlib import Path
+from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_employee_or_admin_user
 from app.database import get_db
 from app.services.car_service import CarService
 from models.user import User
-from schemas.car import CarCreate, CarResponse, CarUpdate, CarStatusUpdate
+from schemas.car import CarCreate, CarResponse, CarStatusUpdate, CarUpdate
 
 router = APIRouter()
+
+CAR_UPLOAD_DIR = Path("uploads/cars")
+CAR_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+
+async def _save_car_photo(file: UploadFile) -> str:
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail=f"File '{file.filename}' is not an image")
+
+    suffix = Path(file.filename or "").suffix.lower() or ".jpg"
+    filename = f"{uuid4().hex}{suffix}"
+    destination = CAR_UPLOAD_DIR / filename
+    destination.write_bytes(await file.read())
+    return f"/uploads/cars/{filename}"
 
 
 @router.get("/", response_model=list[CarResponse])
@@ -64,6 +80,35 @@ async def update_car(
     return car
 
 
+@router.post("/{car_id}/photos", response_model=CarResponse)
+async def upload_car_photos(
+    car_id: int,
+    photos: list[UploadFile] = File(...),
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_employee_or_admin_user),
+):
+    if not photos:
+        raise HTTPException(status_code=400, detail="No files uploaded")
+
+    service = CarService(db)
+    car = await service.get_car(car_id)
+    if not car:
+        raise HTTPException(status_code=404, detail="Car not found")
+
+    new_urls: list[str] = []
+    for photo in photos:
+        try:
+            new_urls.append(await _save_car_photo(photo))
+        finally:
+            await photo.close()
+
+    existing = list(car.photo_urls or [])
+    car.photo_urls = [*existing, *new_urls]
+    await db.commit()
+    await db.refresh(car)
+    return car
+
+
 @router.patch("/{car_id}/status", response_model=CarResponse)
 async def update_car_status(
     car_id: int,
@@ -89,4 +134,3 @@ async def delete_car(
     if not ok:
         raise HTTPException(status_code=404, detail="Car not found")
     return None
-

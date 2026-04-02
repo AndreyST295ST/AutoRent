@@ -18,6 +18,7 @@ class CarBase(BaseModel):
     price_per_day: float
     status: CarStatus = CarStatus.FREE
     description: Optional[str] = None
+    photo_urls: list[str] = Field(default_factory=list)
 
 
 class CarCreate(CarBase):
@@ -36,6 +37,7 @@ class CarUpdate(BaseModel):
     price_per_day: Optional[float] = None
     status: Optional[CarStatus] = None
     description: Optional[str] = None
+    photo_urls: Optional[list[str]] = None
 
 
 class CarStatusUpdate(BaseModel):

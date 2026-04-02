@@ -59,6 +59,24 @@
       return labels[status] || status;
     }
 
+    function resolveAssetUrl(url) {
+      if (!url) return null;
+      if (/^https?:\/\//i.test(url) || url.startsWith("blob:")) return url;
+      const normalized = url.startsWith("/") ? url : `/${url}`;
+      try {
+        const base = window.APP_CONFIG?.API_BASE_URL || "";
+        if (base.startsWith("http")) return `${new URL(base).origin}${normalized}`;
+      } catch (_) {}
+      return normalized;
+    }
+
+    function getCarImageUrl(car) {
+      if (Array.isArray(car.photo_urls) && car.photo_urls.length) {
+        return resolveAssetUrl(car.photo_urls[0]);
+      }
+      return "/assets/images/logo.svg";
+    }
+
     async function loadCars(filters = {}) {
       const grid = document.getElementById("carsGrid");
       grid.innerHTML = '<div class="loader">Загрузка автомобилей...</div>';
@@ -79,13 +97,17 @@
           .map(
             (car) => `
           <article class="car-card" data-car-id="${car.id}">
+            <div class="car-card__image">
+              <img src="${getCarImageUrl(car)}" alt="${car.brand} ${car.model}" loading="lazy" />
+              <span class="car-card__badge car-card__badge--${car.status}">${getStatusLabel(car.status)}</span>
+            </div>
             <div class="car-card__body">
               <h3 class="car-card__title">${car.brand} ${car.model}</h3>
               <div class="car-card__specs">
                 <span>Год: ${car.year || "-"}</span>
                 <span>КПП: ${car.transmission || "-"}</span>
                 <span>Топливо: ${car.fuel_type || "-"}</span>
-                <span>Статус: ${getStatusLabel(car.status)}</span>
+                <span>Фото: ${Array.isArray(car.photo_urls) ? car.photo_urls.length : 0}</span>
               </div>
               <div class="car-card__footer">
                 <div class="car-card__price">${window.Utils.formatCurrency(car.price_per_day)} / сутки</div>

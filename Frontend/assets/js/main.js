@@ -6,7 +6,7 @@
 (function () {
   const APP_CONFIG = {
     API_BASE_URL:
-      window.location.port === "5500" || window.location.port === "3000"
+      window.location.port === "5500"
         ? "http://localhost:8000/api/v1"
         : "/api/v1",
     TOKEN_KEY: "auth_token",
