@@ -44,7 +44,8 @@ uploads/
 
 # Project-specific heavy local folders
 Backend/venv/
-Backend/wheels/
+Backend/wheels/*
+!Backend/wheels/.gitkeep
 
 # Node (if added later)
 node_modules/
