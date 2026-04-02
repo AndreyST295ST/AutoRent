@@ -28,6 +28,47 @@
       }).format(Number(amount || 0));
     },
 
+    getTransmissionLabel(value) {
+      const labels = {
+        automatic: "\u0410\u0432\u0442\u043e\u043c\u0430\u0442",
+        manual: "\u041c\u0435\u0445\u0430\u043d\u0438\u043a\u0430",
+        cvt: "\u0412\u0430\u0440\u0438\u0430\u0442\u043e\u0440",
+        robot: "\u0420\u043e\u0431\u043e\u0442",
+      };
+      return labels[value] || value || "-";
+    },
+
+    getFuelLabel(value) {
+      const labels = {
+        petrol: "\u0411\u0435\u043d\u0437\u0438\u043d",
+        diesel: "\u0414\u0438\u0437\u0435\u043b\u044c",
+        electric: "\u042d\u043b\u0435\u043a\u0442\u0440\u043e",
+        hybrid: "\u0413\u0438\u0431\u0440\u0438\u0434",
+        gas: "\u0413\u0430\u0437",
+      };
+      return labels[value] || value || "-";
+    },
+
+    getCarStatusLabel(value) {
+      const labels = {
+        free: "\u0421\u0432\u043e\u0431\u043e\u0434\u0435\u043d",
+        rented: "\u0412 \u0430\u0440\u0435\u043d\u0434\u0435",
+        maintenance: "\u041d\u0430 \u043e\u0431\u0441\u043b\u0443\u0436\u0438\u0432\u0430\u043d\u0438\u0438",
+        retired: "\u0421\u043f\u0438\u0441\u0430\u043d",
+      };
+      return labels[value] || value || "-";
+    },
+
+    getDocumentStatusLabel(value) {
+      const labels = {
+        pending: "\u041d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0435",
+        verified: "\u041f\u0440\u043e\u0432\u0435\u0440\u0435\u043d\u043e",
+        rejected: "\u041e\u0442\u043a\u043b\u043e\u043d\u0435\u043d\u043e",
+        not_uploaded: "\u041d\u0435 \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d\u044b",
+      };
+      return labels[value] || value || "-";
+    },
+
     isAuthenticated() {
       return !!localStorage.getItem(APP_CONFIG.TOKEN_KEY);
     },

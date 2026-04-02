@@ -1,32 +1,42 @@
-﻿from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, Text, Boolean
+from sqlalchemy import JSON, Column, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 from datetime import datetime
 from app.database import Base
+
 
 class DocumentStatus(str, PyEnum):
     PENDING = "pending"
     VERIFIED = "verified"
     REJECTED = "rejected"
 
+
 class ClientDocument(Base):
     __tablename__ = "client_documents"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     client_id = Column(Integer, ForeignKey("clients.id"), unique=True, nullable=False)
+
+    # Legacy single-file fields kept for backward compatibility.
     passport_scan_url = Column(String(500))
     license_scan_url = Column(String(500))
+
+    # New multi-file fields: up to several scans per document type.
+    passport_scan_urls = Column(JSON, nullable=False, default=list)
+    license_scan_urls = Column(JSON, nullable=False, default=list)
+
     verification_status = Column(Enum(DocumentStatus), default=DocumentStatus.PENDING, nullable=False)
     verified_by = Column(Integer, ForeignKey("users.id"))
     verified_at = Column(DateTime)
     rejection_reason = Column(Text)
     uploaded_at = Column(DateTime, default=datetime.utcnow)
-    
+
     client = relationship("Client", back_populates="documents")
+
 
 class RentalDocument(Base):
     __tablename__ = "rental_documents"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     booking_id = Column(Integer, ForeignKey("bookings.id"), unique=True, nullable=False)
     contract_path = Column(String(500))
@@ -34,6 +44,5 @@ class RentalDocument(Base):
     power_of_attorney_path = Column(String(500))
     generated_at = Column(DateTime, default=datetime.utcnow)
     generated_by = Column(Integer, ForeignKey("users.id"))
-    
-    booking = relationship("Booking", back_populates="rental_documents")
 
+    booking = relationship("Booking", back_populates="rental_documents")

@@ -204,28 +204,28 @@ class BookingService:
         )
         context = self._build_documents_context(booking)
 
-        self._render_pdf_from_template(
+        contract_generated = self._render_pdf_from_template(
             template_env=template_env,
             template_name="contract.html",
             context=context,
             output_path=contract_abs,
         )
-        self._render_pdf_from_template(
+        act_generated = self._render_pdf_from_template(
             template_env=template_env,
             template_name="act.html",
             context=context,
             output_path=act_abs,
         )
-        self._render_pdf_from_template(
+        poa_generated = self._render_pdf_from_template(
             template_env=template_env,
             template_name="power_of_attorney.html",
             context=context,
             output_path=poa_abs,
         )
 
-        rental_doc.contract_path = f"/uploads/{contract_rel.as_posix()}"
-        rental_doc.act_path = f"/uploads/{act_rel.as_posix()}"
-        rental_doc.power_of_attorney_path = f"/uploads/{poa_rel.as_posix()}"
+        rental_doc.contract_path = f"/uploads/{contract_generated.relative_to(UPLOADS_DIR).as_posix()}"
+        rental_doc.act_path = f"/uploads/{act_generated.relative_to(UPLOADS_DIR).as_posix()}"
+        rental_doc.power_of_attorney_path = f"/uploads/{poa_generated.relative_to(UPLOADS_DIR).as_posix()}"
         rental_doc.generated_by = generated_by
         await self.db.commit()
         await self.db.refresh(rental_doc)
@@ -260,10 +260,17 @@ class BookingService:
         template_name: str,
         context: dict,
         output_path: Path,
-    ) -> None:
+    ) -> Path:
         template = template_env.get_template(template_name)
         html = template.render(**context)
-        HTML(string=html, base_url=str(DOCS_TEMPLATES_DIR)).write_pdf(str(output_path))
+        try:
+            HTML(string=html, base_url=str(DOCS_TEMPLATES_DIR)).write_pdf(str(output_path))
+            return output_path
+        except TypeError:
+            # Fallback for incompatible weasyprint/pydyf versions in some demo environments.
+            fallback_path = output_path.with_suffix(".html")
+            fallback_path.write_text(html, encoding="utf-8")
+            return fallback_path
 
     async def _set_status(self, booking_id: int, status: BookingStatus) -> Booking | None:
         booking = await self.get_booking(booking_id)

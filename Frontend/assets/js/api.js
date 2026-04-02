@@ -64,11 +64,37 @@
           this.clearToken();
         }
 
-        throw new Error(error.detail || `HTTP ${response.status}`);
+        throw new Error(this.formatErrorMessage(error, response.status));
       }
 
       if (response.status === 204) return null;
       return response.json();
+    }
+
+    formatErrorMessage(error, statusCode) {
+      const fallback = `HTTP ${statusCode}`;
+      if (!error || error.detail === undefined || error.detail === null) {
+        return fallback;
+      }
+
+      if (typeof error.detail === "string") {
+        return error.detail;
+      }
+
+      if (Array.isArray(error.detail)) {
+        const parts = error.detail
+          .map((item) => {
+            if (typeof item === "string") return item;
+            if (!item || typeof item !== "object") return "";
+            const field = Array.isArray(item.loc) ? item.loc[item.loc.length - 1] : "";
+            const fieldName = field && field !== "body" ? `${field}: ` : "";
+            return `${fieldName}${item.msg || ""}`.trim();
+          })
+          .filter(Boolean);
+        return parts.length ? parts.join("; ") : fallback;
+      }
+
+      return fallback;
     }
 
     async request(endpoint, options = {}) {

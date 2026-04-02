@@ -29,11 +29,29 @@
     return normalized;
   };
 
-  const getCarImageUrl = (car) => {
-    if (Array.isArray(car.photo_urls) && car.photo_urls.length) {
-      return resolveAssetUrl(car.photo_urls[0]);
+  const getCarPhotoUrls = (car) => {
+    if (!Array.isArray(car?.photo_urls) || !car.photo_urls.length) {
+      return ["/assets/images/logo.svg"];
     }
-    return "/assets/images/logo.svg";
+    return car.photo_urls.map(resolveAssetUrl).filter(Boolean);
+  };
+
+  const getCarImageUrl = (car) => getCarPhotoUrls(car)[0];
+
+  const renderCarThumbnails = (car) => {
+    const photos = getCarPhotoUrls(car);
+    if (photos.length <= 1) return "";
+    return `
+      <div class="car-card__thumbs" aria-label="Дополнительные фото ${car.brand} ${car.model}">
+        ${photos
+          .slice(0, 4)
+          .map(
+            (url, index) =>
+              `<img src="${url}" alt="${car.brand} ${car.model} фото ${index + 1}" loading="lazy" />`
+          )
+          .join("")}
+      </div>
+    `;
   };
 
   try {
@@ -46,6 +64,7 @@
         <div class="car-card__image">
           <img src="${getCarImageUrl(car)}" alt="${car.brand} ${car.model}" loading="lazy" />
         </div>
+        ${renderCarThumbnails(car)}
         <div class="car-card__body">
           <h3 class="car-card__title">${car.brand} ${car.model}</h3>
           <p>${car.year || ""}</p>

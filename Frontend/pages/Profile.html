@@ -68,7 +68,7 @@
               </div>
               <div class="form__row">
                 <div class="form__group">
-                  <label for="email">Email</label>
+                  <label for="email">Эл. почта</label>
                   <input type="email" id="email" class="input" />
                 </div>
                 <div class="form__group">
@@ -88,14 +88,14 @@
             </div>
             <form class="form" id="documentsForm" enctype="multipart/form-data">
               <div class="form__group">
-                <label for="passport">Паспорт (скан)</label>
-                <input type="file" id="passport" class="input" accept="image/*,.pdf" />
-                <span class="hint">PDF, JPG, PNG. Макс. 5MB</span>
+                <label for="passport">Паспорт (2 фото)</label>
+                <input type="file" id="passport" class="input" accept="image/*,.pdf" multiple />
+                <span class="hint">Загрузите 2 файла (до 5MB каждый)</span>
               </div>
               <div class="form__group">
-                <label for="license">Водительское удостоверение (скан)</label>
-                <input type="file" id="license" class="input" accept="image/*,.pdf" />
-                <span class="hint">PDF, JPG, PNG. Макс. 5MB</span>
+                <label for="license">Водительское удостоверение (2 фото)</label>
+                <input type="file" id="license" class="input" accept="image/*,.pdf" multiple />
+                <span class="hint">Загрузите 2 файла (до 5MB каждый)</span>
               </div>
               <button type="submit" class="btn btn--primary">Загрузить документы</button>
             </form>
@@ -128,8 +128,8 @@
               <label class="checkbox-card">
                 <input type="checkbox" name="notification" value="email" checked />
                 <div class="checkbox-card__content">
-                  <strong>📧 Email-уведомления</strong>
-                  <small>Получать уведомления на email</small>
+                  <strong>📧 Уведомления на почту</strong>
+                  <small>Получать уведомления на эл. почту</small>
                 </div>
               </label>
               <label class="checkbox-card">

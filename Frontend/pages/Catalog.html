@@ -105,8 +105,8 @@
               <h3 class="car-card__title">${car.brand} ${car.model}</h3>
               <div class="car-card__specs">
                 <span>Год: ${car.year || "-"}</span>
-                <span>КПП: ${car.transmission || "-"}</span>
-                <span>Топливо: ${car.fuel_type || "-"}</span>
+                <span>КПП: ${window.Utils.getTransmissionLabel(car.transmission)}</span>
+                <span>Топливо: ${window.Utils.getFuelLabel(car.fuel_type)}</span>
                 <span>Фото: ${Array.isArray(car.photo_urls) ? car.photo_urls.length : 0}</span>
               </div>
               <div class="car-card__footer">

@@ -85,6 +85,12 @@
     inactive: "badge badge--returned",
   };
 
+  const ROLE_LABELS = {
+    admin: "Администратор",
+    employee: "Сотрудник",
+    client: "Клиент",
+  };
+
   function statusBadge(status) {
     const label = STATUS_LABELS[status] || status || "-";
     return `<span class="${STATUS_BADGES[status] || "badge"}">${label}</span>`;
@@ -306,8 +312,8 @@
             <td>${formatSafeDate(d.uploaded_at)}</td>
             <td style="display:flex; gap:.35rem; flex-wrap:wrap;">
               <button class="btn btn--outline btn--sm" data-action="doc-open-client" data-id="${d.client_id}">Карточка</button>
-              <button class="btn btn--outline btn--sm" data-action="doc-open-passport" data-id="${d.client_id}" ${d.passport_scan_url ? "" : "disabled"}>Паспорт</button>
-              <button class="btn btn--outline btn--sm" data-action="doc-open-license" data-id="${d.client_id}" ${d.license_scan_url ? "" : "disabled"}>ВУ</button>
+              <button class="btn btn--outline btn--sm" data-action="doc-open-passport" data-id="${d.client_id}" ${getDocumentUrls(d, "passport").length ? "" : "disabled"}>Паспорт</button>
+              <button class="btn btn--outline btn--sm" data-action="doc-open-license" data-id="${d.client_id}" ${getDocumentUrls(d, "license").length ? "" : "disabled"}>ВУ</button>
               <button class="btn btn--outline btn--sm" data-action="doc-verify" data-id="${d.client_id}" ${st !== "not_uploaded" ? "" : "disabled"}>Подтвердить</button>
               <button class="btn btn--outline btn--sm" data-action="doc-reject" data-id="${d.client_id}" ${st !== "not_uploaded" ? "" : "disabled"}>Отклонить</button>
             </td>
@@ -349,7 +355,7 @@
         <td>${u.id}</td>
         <td>${u.first_name} ${u.last_name}</td>
         <td>${u.email}</td>
-        <td>${u.role}</td>
+        <td>${ROLE_LABELS[u.role] || u.role || "-"}</td>
         <td>${statusBadge(u.status)}</td>
         <td>${window.Utils.formatDate(u.created_at || new Date().toISOString())}</td>
         <td><button class="btn btn--outline btn--sm" data-action="user-toggle-status" data-id="${u.id}" ${isSelf ? "disabled" : ""}>${isSelf ? "Это вы" : nextLabel}</button></td>
@@ -379,6 +385,15 @@
   function getPrimaryCarPhoto(car) {
     if (!car || !Array.isArray(car.photo_urls) || !car.photo_urls.length) return null;
     return resolveAssetUrl(car.photo_urls[0]);
+  }
+
+  function getDocumentUrls(doc, type) {
+    const listKey = type === "passport" ? "passport_scan_urls" : "license_scan_urls";
+    const legacyKey = type === "passport" ? "passport_scan_url" : "license_scan_url";
+    const list = Array.isArray(doc?.[listKey]) ? doc[listKey].filter(Boolean) : [];
+    if (list.length) return list;
+    if (doc?.[legacyKey]) return [doc[legacyKey]];
+    return [];
   }
 
   function openClientDocsModal(title, html) {
@@ -446,10 +461,9 @@
   async function openDocumentViewer(clientId, type) {
     const doc = state.documents.find((d) => Number(d.client_id) === Number(clientId));
     if (!doc) return window.Utils.showNotification("warning", "Документы клиента не найдены");
-    const key = type === "passport" ? "passport_scan_url" : "license_scan_url";
-    const url = doc[key];
-    if (!url) return window.Utils.showNotification("warning", "Файл документа не загружен");
-    const resolved = resolveAssetUrl(url);
+    const urls = getDocumentUrls(doc, type);
+    if (!urls.length) return window.Utils.showNotification("warning", "Файл документа не загружен");
+    const resolved = resolveAssetUrl(urls[0]);
     const title = type === "passport" ? `Паспорт клиента #${clientId}` : `Водительское удостоверение клиента #${clientId}`;
     const html = /\.pdf(\?|$)/i.test(String(resolved))
       ? `<iframe class="doc-preview doc-preview--pdf" src="${resolved}" title="${title}"></iframe>`
@@ -474,7 +488,7 @@
         <div class="client-card-block">
           <h4>Профиль клиента</h4>
           <div class="client-card-row"><span>ФИО</span><strong>${user.full_name || "-"}</strong></div>
-          <div class="client-card-row"><span>Email</span><span>${user.email || "-"}</span></div>
+          <div class="client-card-row"><span>Эл. почта</span><span>${user.email || "-"}</span></div>
           <div class="client-card-row"><span>Телефон</span><span>${user.phone || "-"}</span></div>
           <div class="client-card-row"><span>Статус</span><span>${statusBadge(user.status || "inactive")}</span></div>
         </div>
@@ -482,8 +496,8 @@
           <h4>Документы</h4>
           <div class="client-card-row"><span>Проверка</span><span>${statusBadge(docs.verification_status || "not_uploaded")}</span></div>
           <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.75rem;">
-            <button class="btn btn--outline btn--sm" data-action="doc-open-passport" data-id="${clientId}" ${docs.passport_scan_url ? "" : "disabled"}>Паспорт</button>
-            <button class="btn btn--outline btn--sm" data-action="doc-open-license" data-id="${clientId}" ${docs.license_scan_url ? "" : "disabled"}>Вод. удостоверение</button>
+            <button class="btn btn--outline btn--sm" data-action="doc-open-passport" data-id="${clientId}" ${getDocumentUrls(docs, "passport").length ? "" : "disabled"}>Паспорт</button>
+            <button class="btn btn--outline btn--sm" data-action="doc-open-license" data-id="${clientId}" ${getDocumentUrls(docs, "license").length ? "" : "disabled"}>Вод. удостоверение</button>
           </div>
         </div>
       </div>

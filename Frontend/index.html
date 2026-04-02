@@ -406,11 +406,31 @@
       return normalized;
     }
 
-    function getCarImageUrl(car) {
-      if (Array.isArray(car.photo_urls) && car.photo_urls.length) {
-        return resolveAssetUrl(car.photo_urls[0]);
+    function getCarPhotoUrls(car) {
+      if (!Array.isArray(car?.photo_urls) || !car.photo_urls.length) {
+        return ['/assets/images/logo.svg'];
       }
-      return '/assets/images/logo.svg';
+      return car.photo_urls.map(resolveAssetUrl).filter(Boolean);
+    }
+
+    function getCarImageUrl(car) {
+      return getCarPhotoUrls(car)[0];
+    }
+
+    function renderCarThumbnails(car) {
+      const photos = getCarPhotoUrls(car);
+      if (photos.length <= 1) return '';
+      return `
+        <div class="car-card__thumbs" aria-label="Дополнительные фото ${car.brand} ${car.model}">
+          ${photos
+            .slice(0, 4)
+            .map(
+              (url, index) =>
+                `<img src="${url}" alt="${car.brand} ${car.model} фото ${index + 1}" loading="lazy" />`
+            )
+            .join('')}
+        </div>
+      `;
     }
 
     // Load featured cars
@@ -441,15 +461,16 @@
                    alt="${car.brand} ${car.model}" 
                    loading="lazy" />
               <span class="car-card__badge car-card__badge--${car.status}">
-                ${car.status === 'free' ? 'Свободен' : car.status}
+                ${window.Utils.getCarStatusLabel(car.status)}
               </span>
             </div>
+            ${renderCarThumbnails(car)}
             <div class="car-card__body">
               <h3 class="car-card__title">${car.brand} ${car.model}</h3>
               <div class="car-card__specs">
                 <span class="spec">📅 ${car.year || '-'}</span>
-                <span class="spec">⚙️ ${car.transmission || '-'}</span>
-                <span class="spec">⛽ ${car.fuel_type || '-'}</span>
+                <span class="spec">⚙️ ${window.Utils.getTransmissionLabel(car.transmission)}</span>
+                <span class="spec">⛽ ${window.Utils.getFuelLabel(car.fuel_type)}</span>
                 <span class="spec">📷 ${Array.isArray(car.photo_urls) ? car.photo_urls.length : 0} фото</span>
               </div>
               <div class="car-card__footer">

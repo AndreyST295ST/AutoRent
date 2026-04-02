@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -22,6 +22,7 @@ router = APIRouter()
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+MAX_DOC_FILES_PER_TYPE = 2
 
 ACTIVE_BOOKING_STATUSES = {
     BookingStatus.PENDING_REVIEW,
@@ -47,21 +48,48 @@ def _safe_float(value) -> float:
     return float(value) if value is not None else 0.0
 
 
+def _extract_urls(doc: ClientDocument | None, key: str) -> list[str]:
+    if not doc:
+        return []
+
+    list_attr = f"{key}_scan_urls"
+    single_attr = f"{key}_scan_url"
+
+    raw_list = getattr(doc, list_attr, None)
+    if isinstance(raw_list, list):
+        cleaned = [str(url).strip() for url in raw_list if str(url).strip()]
+        if cleaned:
+            return cleaned
+
+    legacy = getattr(doc, single_attr, None)
+    if legacy:
+        return [legacy]
+
+    return []
+
+
 def _serialize_document(doc: ClientDocument | None) -> dict:
     if not doc:
         return {
             "verification_status": "not_uploaded",
             "passport_scan_url": None,
             "license_scan_url": None,
+            "passport_scan_urls": [],
+            "license_scan_urls": [],
             "uploaded_at": None,
             "verified_at": None,
             "rejection_reason": None,
         }
 
+    passport_urls = _extract_urls(doc, "passport")
+    license_urls = _extract_urls(doc, "license")
+
     return {
         "verification_status": doc.verification_status,
-        "passport_scan_url": doc.passport_scan_url,
-        "license_scan_url": doc.license_scan_url,
+        "passport_scan_url": passport_urls[0] if passport_urls else None,
+        "license_scan_url": license_urls[0] if license_urls else None,
+        "passport_scan_urls": passport_urls,
+        "license_scan_urls": license_urls,
         "uploaded_at": doc.uploaded_at,
         "verified_at": doc.verified_at,
         "rejection_reason": doc.rejection_reason,
@@ -164,19 +192,24 @@ async def get_documents_queue(
     docs = list(result.scalars().all())
     client_entities = await _build_client_entities(db, {doc.client_id for doc in docs})
 
-    return [
-        {
-            "client_id": doc.client_id,
-            "passport_scan_url": doc.passport_scan_url,
-            "license_scan_url": doc.license_scan_url,
-            "verification_status": doc.verification_status,
-            "uploaded_at": doc.uploaded_at,
-            "verified_at": doc.verified_at,
-            "rejection_reason": doc.rejection_reason,
-            "client": client_entities.get(doc.client_id),
-        }
-        for doc in docs
-    ]
+    rows: list[dict] = []
+    for doc in docs:
+        serialized = _serialize_document(doc)
+        rows.append(
+            {
+                "client_id": doc.client_id,
+                "passport_scan_url": serialized["passport_scan_url"],
+                "license_scan_url": serialized["license_scan_url"],
+                "passport_scan_urls": serialized["passport_scan_urls"],
+                "license_scan_urls": serialized["license_scan_urls"],
+                "verification_status": doc.verification_status,
+                "uploaded_at": doc.uploaded_at,
+                "verified_at": doc.verified_at,
+                "rejection_reason": doc.rejection_reason,
+                "client": client_entities.get(doc.client_id),
+            }
+        )
+    return rows
 
 
 @router.get("/client/{client_id}")
@@ -255,11 +288,25 @@ async def get_my_documents(
     result = await db.execute(select(ClientDocument).where(ClientDocument.client_id == client_id))
     document = result.scalar_one_or_none()
     if not document:
-        return {"client_id": client_id, "status": "not_uploaded"}
+        return {
+            "client_id": client_id,
+            "status": "not_uploaded",
+            "verification_status": "not_uploaded",
+            "passport_scan_url": None,
+            "license_scan_url": None,
+            "passport_scan_urls": [],
+            "license_scan_urls": [],
+            "verified_at": None,
+            "rejection_reason": None,
+        }
+
+    serialized = _serialize_document(document)
     return {
         "client_id": document.client_id,
-        "passport_scan_url": document.passport_scan_url,
-        "license_scan_url": document.license_scan_url,
+        "passport_scan_url": serialized["passport_scan_url"],
+        "license_scan_url": serialized["license_scan_url"],
+        "passport_scan_urls": serialized["passport_scan_urls"],
+        "license_scan_urls": serialized["license_scan_urls"],
         "verification_status": document.verification_status,
         "verified_at": document.verified_at,
         "rejection_reason": document.rejection_reason,
@@ -268,23 +315,53 @@ async def get_my_documents(
 
 @router.post("/upload")
 async def upload_documents(
-    passport: UploadFile = File(...),
-    license: UploadFile = File(...),
+    passport: list[UploadFile] = File(...),
+    license: list[UploadFile] = File(...),
     db: AsyncSession = Depends(get_db),
     current_client: Client = Depends(get_current_client),
 ):
-    client_id = current_client.id
-    passport_url = await _save_upload(passport, "passport")
-    license_url = await _save_upload(license, "license")
+    passport_files = [file for file in (passport or []) if file and file.filename]
+    license_files = [file for file in (license or []) if file and file.filename]
 
+    if not passport_files or not license_files:
+        raise HTTPException(status_code=400, detail="Passport and driver license files are required")
+    if len(passport_files) > MAX_DOC_FILES_PER_TYPE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"At most {MAX_DOC_FILES_PER_TYPE} passport files are allowed",
+        )
+    if len(license_files) > MAX_DOC_FILES_PER_TYPE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"At most {MAX_DOC_FILES_PER_TYPE} license files are allowed",
+        )
+
+    passport_urls: list[str] = []
+    license_urls: list[str] = []
+
+    try:
+        for index, file in enumerate(passport_files, start=1):
+            passport_urls.append(await _save_upload(file, f"passport_{index}"))
+        for index, file in enumerate(license_files, start=1):
+            license_urls.append(await _save_upload(file, f"license_{index}"))
+    finally:
+        for file in passport_files:
+            await file.close()
+        for file in license_files:
+            await file.close()
+
+    client_id = current_client.id
     result = await db.execute(select(ClientDocument).where(ClientDocument.client_id == client_id))
     doc = result.scalar_one_or_none()
     if doc is None:
         doc = ClientDocument(client_id=client_id)
         db.add(doc)
 
-    doc.passport_scan_url = passport_url
-    doc.license_scan_url = license_url
+    doc.passport_scan_urls = passport_urls
+    doc.license_scan_urls = license_urls
+    # Keep legacy first-file fields for older UI clients.
+    doc.passport_scan_url = passport_urls[0] if passport_urls else None
+    doc.license_scan_url = license_urls[0] if license_urls else None
     doc.verification_status = DocumentStatus.PENDING
     doc.rejection_reason = None
     doc.uploaded_at = datetime.utcnow()
@@ -295,6 +372,8 @@ async def upload_documents(
         "message": "Documents uploaded",
         "client_id": doc.client_id,
         "verification_status": doc.verification_status,
+        "passport_scan_urls": doc.passport_scan_urls,
+        "license_scan_urls": doc.license_scan_urls,
     }
 
 

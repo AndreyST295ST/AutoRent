@@ -55,6 +55,51 @@ async def startup():
                     text("ALTER TABLE cars ADD COLUMN photo_urls JSON NOT NULL DEFAULT '[]'")
                 )
 
+        has_passport_scan_urls = await conn.run_sync(
+            lambda sync_conn: any(
+                column["name"] == "passport_scan_urls"
+                for column in inspect(sync_conn).get_columns("client_documents")
+            )
+        )
+        has_license_scan_urls = await conn.run_sync(
+            lambda sync_conn: any(
+                column["name"] == "license_scan_urls"
+                for column in inspect(sync_conn).get_columns("client_documents")
+            )
+        )
+
+        if not has_passport_scan_urls:
+            if conn.dialect.name == "postgresql":
+                await conn.execute(
+                    text(
+                        "ALTER TABLE client_documents "
+                        "ADD COLUMN passport_scan_urls JSON NOT NULL DEFAULT '[]'::json"
+                    )
+                )
+            else:
+                await conn.execute(
+                    text(
+                        "ALTER TABLE client_documents "
+                        "ADD COLUMN passport_scan_urls JSON NOT NULL DEFAULT '[]'"
+                    )
+                )
+
+        if not has_license_scan_urls:
+            if conn.dialect.name == "postgresql":
+                await conn.execute(
+                    text(
+                        "ALTER TABLE client_documents "
+                        "ADD COLUMN license_scan_urls JSON NOT NULL DEFAULT '[]'::json"
+                    )
+                )
+            else:
+                await conn.execute(
+                    text(
+                        "ALTER TABLE client_documents "
+                        "ADD COLUMN license_scan_urls JSON NOT NULL DEFAULT '[]'"
+                    )
+                )
+
     async with AsyncSessionLocal() as session:
         await AuthService(session).ensure_demo_admin()
 

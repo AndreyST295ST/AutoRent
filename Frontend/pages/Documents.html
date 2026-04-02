@@ -51,16 +51,16 @@
         <h2 id="uploadTitle">Загрузка документов</h2>
         <form id="uploadForm" class="form" enctype="multipart/form-data">
           <div class="form__group">
-            <label for="passport">Паспорт (разворот с фото) *</label>
-            <input type="file" id="passport" class="input" accept="image/*,.pdf" required aria-required="true" />
-            <span class="hint">PDF, JPG, PNG. Макс. 5MB. Чёткое изображение всех страниц</span>
+            <label for="passport">Паспорт (2 фото: главный разворот и регистрация) *</label>
+            <input type="file" id="passport" class="input" accept="image/*,.pdf" required aria-required="true" multiple />
+            <span class="hint">Загрузите 2 файла (JPG/PNG/PDF), до 5MB каждый</span>
             <div id="passportPreview" class="file-preview"></div>
           </div>
           
           <div class="form__group">
-            <label for="license">Водительское удостоверение (обе стороны) *</label>
-            <input type="file" id="license" class="input" accept="image/*,.pdf" required aria-required="true" />
-            <span class="hint">PDF, JPG, PNG. Макс. 5MB. Обе стороны удостоверения</span>
+            <label for="license">Водительское удостоверение (2 фото: лицевая и обратная) *</label>
+            <input type="file" id="license" class="input" accept="image/*,.pdf" required aria-required="true" multiple />
+            <span class="hint">Загрузите 2 файла (JPG/PNG/PDF), до 5MB каждый</span>
             <div id="licensePreview" class="file-preview"></div>
           </div>
           

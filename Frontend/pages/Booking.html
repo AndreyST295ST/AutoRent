@@ -127,7 +127,7 @@
         car = await window.carsAPI.getById(carId);
         document.getElementById("carInfo").innerHTML = `
           <h4>${car.brand} ${car.model}</h4>
-          <p>${car.year || ""} | ${car.transmission || ""} | ${car.fuel_type || ""}</p>
+          <p>${car.year || ""} | ${window.Utils.getTransmissionLabel(car.transmission)} | ${window.Utils.getFuelLabel(car.fuel_type)}</p>
           <p class="price__value">${window.Utils.formatCurrency(car.price_per_day)} / сутки</p>
         `;
       } catch (error) {
@@ -179,5 +179,4 @@
   </script>
 </body>
 </html>
-
 

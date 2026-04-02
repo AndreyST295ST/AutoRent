@@ -18,8 +18,8 @@
 
     <form id="loginForm" class="auth-form">
       <div class="form__group">
-        <label for="email">Email или логин</label>
-        <input type="text" id="email" class="input" required placeholder="admin или your@email.com" />
+        <label for="email">Эл. почта или логин</label>
+        <input type="text" id="email" class="input" required placeholder="admin или user@mail.com" />
         <span class="error" id="emailError"></span>
       </div>
 
@@ -54,7 +54,7 @@
       emailError.textContent = "";
 
       if (!email) {
-        emailError.textContent = "Введите email или логин";
+        emailError.textContent = "Введите эл. почту или логин";
         return;
       }
 
