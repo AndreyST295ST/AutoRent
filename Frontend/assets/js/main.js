@@ -128,9 +128,39 @@
 
     init() {
       if (!this.element) return;
+      this.ensureMobileToggle();
       this.loadUser();
       this.attachEvents();
       this.updateActiveNav();
+    }
+
+    ensureMobileToggle() {
+      if (!this.nav || this.mobileToggle) return;
+      const container = this.element.querySelector(".header__container");
+      if (!container) return;
+
+      if (!this.nav.id) {
+        this.nav.id = "mainNav";
+      }
+
+      const button = document.createElement("button");
+      button.className = "btn btn--icon mobile-toggle";
+      button.id = "mobileToggleAuto";
+      button.type = "button";
+      button.setAttribute("aria-label", "Меню");
+      button.setAttribute("aria-expanded", "false");
+      button.setAttribute("aria-controls", this.nav.id);
+      button.textContent = "☰";
+
+      container.appendChild(button);
+      this.mobileToggle = button;
+    }
+
+    closeMobileNav() {
+      if (!this.nav || !this.mobileToggle) return;
+      this.nav.classList.remove("nav--open");
+      this.mobileToggle.setAttribute("aria-expanded", "false");
+      this.mobileToggle.textContent = "☰";
     }
 
     attachEvents() {
@@ -138,7 +168,15 @@
         this.mobileToggle.addEventListener("click", () => {
           const isOpen = this.nav.classList.toggle("nav--open");
           this.mobileToggle.setAttribute("aria-expanded", String(isOpen));
-          this.mobileToggle.textContent = isOpen ? "x" : "≡";
+          this.mobileToggle.textContent = isOpen ? "✕" : "☰";
+        });
+
+        this.nav.querySelectorAll("a").forEach((link) => {
+          link.addEventListener("click", () => this.closeMobileNav());
+        });
+
+        window.addEventListener("resize", () => {
+          if (window.innerWidth >= 768) this.closeMobileNav();
         });
       }
     }

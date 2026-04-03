@@ -55,6 +55,20 @@
 
 /* ===== Mobile Specific Styles ===== */
 @media (max-width: 767px) {
+  .header__container {
+    flex-wrap: wrap;
+    row-gap: var(--space-3);
+  }
+
+  .logo {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .logo__text {
+    font-size: var(--font-size-xl);
+  }
+
   .nav {
     display: none;
     position: absolute;
@@ -74,10 +88,39 @@
   
   .mobile-toggle {
     display: block;
+    margin-left: auto;
+    flex-shrink: 0;
   }
   
   .user-menu {
-    display: none;
+    display: flex;
+    width: 100%;
+    order: 3;
+    justify-content: flex-start;
+  }
+
+  .auth-buttons {
+    width: 100%;
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .auth-buttons .btn {
+    flex: 1 1 140px;
+  }
+
+  .user-info {
+    width: 100%;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .user-name {
+    max-width: 60vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   
   .hero__title {
@@ -141,7 +184,38 @@
   .cars__grid {
     grid-template-columns: 1fr;
   }
-  
+
+  .car-card__specs {
+    grid-template-columns: 1fr;
+  }
+
+  .car-card__footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .car-card__footer .btn {
+    width: 100%;
+  }
+
+  .page-title {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-6);
+  }
+
+  .breadcrumb {
+    flex-wrap: wrap;
+  }
+
+  .card {
+    padding: var(--space-4);
+  }
+
+  .auth-container {
+    padding: var(--space-5);
+  }
+
   .stats__grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -193,12 +267,35 @@
   }
   
   .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     font-size: var(--font-size-sm);
   }
   
   .table th,
   .table td {
     padding: var(--space-2);
+  }
+
+  .admin-page .table {
+    min-width: 760px;
+  }
+
+  .filters--admin {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters--admin .input,
+  .filters--admin .btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .alert-container {
+    left: var(--space-3);
+    right: var(--space-3);
+    max-width: none;
   }
   
   .error__actions {
@@ -207,6 +304,24 @@
   
   .error__actions .btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    padding: var(--space-12) 0;
+  }
+
+  .logo__icon {
+    font-size: var(--font-size-2xl);
+  }
+
+  .logo__text {
+    font-size: var(--font-size-lg);
   }
 }
 
