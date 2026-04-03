@@ -16,16 +16,16 @@
   class ApiClient {
     constructor() {
       this.baseURL = config.API_BASE_URL;
-      this.token = this.getToken();
+      this.token = null;
+      this.csrfHeaderName = config.CSRF_HEADER_NAME || "X-CSRF-Token";
     }
 
     getToken() {
-      return localStorage.getItem(config.TOKEN_KEY || "auth_token");
+      return this.token;
     }
 
     setToken(token) {
-      this.token = token;
-      localStorage.setItem(config.TOKEN_KEY || "auth_token", token);
+      this.token = token || null;
     }
 
     clearToken() {
@@ -34,7 +34,13 @@
       localStorage.removeItem(config.USER_KEY || "user_data");
     }
 
-    getHeaders(customHeaders = {}) {
+    getCookie(name) {
+      const escaped = name.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1");
+      const match = document.cookie.match(new RegExp(`(?:^|; )${escaped}=([^;]*)`));
+      return match ? decodeURIComponent(match[1]) : null;
+    }
+
+    getHeaders(customHeaders = {}, method = "GET") {
       const headers = {
         Accept: "application/json",
         ...customHeaders,
@@ -46,6 +52,14 @@
 
       if (this.token) {
         headers.Authorization = `Bearer ${this.token}`;
+      }
+
+      const unsafeMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(String(method).toUpperCase());
+      if (unsafeMethod && !headers[this.csrfHeaderName]) {
+        const csrfToken = this.getCookie(config.CSRF_COOKIE_NAME || "csrf_token");
+        if (csrfToken) {
+          headers[this.csrfHeaderName] = csrfToken;
+        }
       }
 
       return headers;
@@ -99,9 +113,11 @@
 
     async request(endpoint, options = {}) {
       const url = `${this.baseURL}${endpoint}`;
+      const method = options.method || "GET";
       const response = await fetch(url, {
         ...options,
-        headers: this.getHeaders(options.headers || {}),
+        credentials: "include",
+        headers: this.getHeaders(options.headers || {}, method),
       });
       return this.handleResponse(response);
     }
@@ -147,10 +163,11 @@
     }
 
     async upload(endpoint, formData) {
-      const headers = this.getHeaders();
+      const headers = this.getHeaders({}, "POST");
       delete headers["Content-Type"];
       const response = await fetch(`${this.baseURL}${endpoint}`, {
         method: "POST",
+        credentials: "include",
         headers,
         body: formData,
       });

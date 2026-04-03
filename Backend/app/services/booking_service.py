@@ -223,9 +223,9 @@ class BookingService:
             output_path=poa_abs,
         )
 
-        rental_doc.contract_path = f"/uploads/{contract_generated.relative_to(UPLOADS_DIR).as_posix()}"
-        rental_doc.act_path = f"/uploads/{act_generated.relative_to(UPLOADS_DIR).as_posix()}"
-        rental_doc.power_of_attorney_path = f"/uploads/{poa_generated.relative_to(UPLOADS_DIR).as_posix()}"
+        rental_doc.contract_path = contract_generated.relative_to(UPLOADS_DIR).as_posix()
+        rental_doc.act_path = act_generated.relative_to(UPLOADS_DIR).as_posix()
+        rental_doc.power_of_attorney_path = poa_generated.relative_to(UPLOADS_DIR).as_posix()
         rental_doc.generated_by = generated_by
         await self.db.commit()
         await self.db.refresh(rental_doc)

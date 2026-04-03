@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_employee_or_admin_user
+from app.config import settings
 from app.database import get_db
 from app.services.car_service import CarService
 from models.user import User
@@ -15,16 +16,43 @@ router = APIRouter()
 
 CAR_UPLOAD_DIR = Path("uploads/cars")
 CAR_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+CHUNK_SIZE_BYTES = 1024 * 1024
+MAX_CAR_FILE_SIZE_BYTES = settings.MAX_CAR_PHOTO_FILE_SIZE_MB * 1024 * 1024
+ALLOWED_CAR_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+ALLOWED_CAR_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 
 async def _save_car_photo(file: UploadFile) -> str:
-    if not file.content_type or not file.content_type.startswith("image/"):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Filename is required")
+
+    suffix = Path(file.filename).suffix.lower()
+    if suffix not in ALLOWED_CAR_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported image format '{suffix}'. Allowed: {', '.join(sorted(ALLOWED_CAR_EXTENSIONS))}",
+        )
+    if file.content_type and file.content_type.lower() not in ALLOWED_CAR_CONTENT_TYPES:
         raise HTTPException(status_code=400, detail=f"File '{file.filename}' is not an image")
 
-    suffix = Path(file.filename or "").suffix.lower() or ".jpg"
     filename = f"{uuid4().hex}{suffix}"
     destination = CAR_UPLOAD_DIR / filename
-    destination.write_bytes(await file.read())
+    written = 0
+    try:
+        with destination.open("wb") as stream:
+            while chunk := await file.read(CHUNK_SIZE_BYTES):
+                written += len(chunk)
+                if written > MAX_CAR_FILE_SIZE_BYTES:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"Image '{file.filename}' exceeds {settings.MAX_CAR_PHOTO_FILE_SIZE_MB} MB",
+                    )
+                stream.write(chunk)
+    except Exception:
+        if destination.exists():
+            destination.unlink()
+        raise
+
     return f"/uploads/cars/{filename}"
 
 
@@ -89,6 +117,11 @@ async def upload_car_photos(
 ):
     if not photos:
         raise HTTPException(status_code=400, detail="No files uploaded")
+    if len(photos) > settings.MAX_CAR_PHOTOS_PER_UPLOAD:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Too many files. Max {settings.MAX_CAR_PHOTOS_PER_UPLOAD} per request",
+        )
 
     service = CarService(db)
     car = await service.get_car(car_id)

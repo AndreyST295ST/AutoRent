@@ -43,15 +43,15 @@ class UserResponse(UserBase):
 
 
 class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+    access_token: Optional[str] = None
+    token_type: str = "cookie"
     user: UserResponse
 
 
 class RegisterResponse(BaseModel):
     message: str
     user_id: int
-    activation_token: str
+    activation_required: bool = False
 
 
 class ActivationResponse(BaseModel):

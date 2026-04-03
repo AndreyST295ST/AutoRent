@@ -1,7 +1,10 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, status
+import secrets
+
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_active_user
+from app.config import settings
 from app.core.security import create_access_token
 from app.database import get_db
 from app.services.auth_service import AuthService
@@ -16,6 +19,7 @@ from schemas.user import (
 )
 
 router = APIRouter()
+COOKIE_MAX_AGE_SECONDS = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
 
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
@@ -25,15 +29,20 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         user, activation_token = await service.register(user_data)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    activation_required = bool(activation_token)
     return RegisterResponse(
-        message="Check your email to activate account",
+        message="Account created successfully" if not activation_required else "Check your email to activate account",
         user_id=user.id,
-        activation_token=activation_token,
+        activation_required=activation_required,
     )
 
 
 @router.post("/login", response_model=Token)
-async def login(form_data: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(
+    form_data: LoginRequest,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
     service = AuthService(db)
     try:
         user = await service.authenticate(form_data.email, form_data.password)
@@ -44,9 +53,32 @@ async def login(form_data: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
+    csrf_token = secrets.token_urlsafe(32)
+
+    response.set_cookie(
+        key=settings.AUTH_COOKIE_NAME,
+        value=access_token,
+        max_age=COOKIE_MAX_AGE_SECONDS,
+        httponly=True,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        path="/",
+        domain=settings.COOKIE_DOMAIN,
+    )
+    response.set_cookie(
+        key=settings.CSRF_COOKIE_NAME,
+        value=csrf_token,
+        max_age=COOKIE_MAX_AGE_SECONDS,
+        httponly=False,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        path="/",
+        domain=settings.COOKIE_DOMAIN,
+    )
+
     return Token(
-        access_token=access_token,
-        token_type="bearer",
+        access_token=None,
+        token_type="cookie",
         user=UserResponse.model_validate(user),
     )
 
@@ -62,7 +94,17 @@ async def activate_account(token: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/logout")
-async def logout():
+async def logout(response: Response):
+    response.delete_cookie(
+        key=settings.AUTH_COOKIE_NAME,
+        path="/",
+        domain=settings.COOKIE_DOMAIN,
+    )
+    response.delete_cookie(
+        key=settings.CSRF_COOKIE_NAME,
+        path="/",
+        domain=settings.COOKIE_DOMAIN,
+    )
     return {"message": "Logged out"}
 
 
@@ -71,4 +113,3 @@ async def me(
     current_user: User = Depends(get_current_active_user),
 ):
     return UserResponse.model_validate(current_user)
-

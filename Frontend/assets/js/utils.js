@@ -174,7 +174,7 @@ export function hideLoader(elementId = 'pageLoader') {
 
 // ===== Аутентификация =====
 export function isAuthenticated() {
-  return !!localStorage.getItem('auth_token');
+  return !!localStorage.getItem('user_data');
 }
 
 export function getCurrentUser() {

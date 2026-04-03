@@ -1,23 +1,39 @@
-﻿from fastapi import Depends, HTTPException, status
+import secrets
+
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.security import decode_access_token
 from app.database import get_db
 from models.user import Client, User, UserRole, UserStatus
 
 bearer_scheme = HTTPBearer(auto_error=False)
+SAFE_METHODS = {"GET", "HEAD", "OPTIONS", "TRACE"}
 
 
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    if not credentials:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
+    bearer_token = credentials.credentials if credentials else None
+    cookie_token = request.cookies.get(settings.AUTH_COOKIE_NAME)
+    token = bearer_token or cookie_token
 
-    payload = decode_access_token(credentials.credentials)
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+
+    uses_cookie_auth = bool(cookie_token) and not bearer_token
+    if uses_cookie_auth and request.method.upper() not in SAFE_METHODS:
+        csrf_cookie = request.cookies.get(settings.CSRF_COOKIE_NAME)
+        csrf_header = request.headers.get(settings.CSRF_HEADER_NAME)
+        if not csrf_cookie or not csrf_header or not secrets.compare_digest(csrf_cookie, csrf_header):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF validation failed")
+
+    payload = decode_access_token(token)
     if not payload or "sub" not in payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
@@ -64,4 +80,3 @@ async def get_current_client(
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client profile not found")
     return client
-

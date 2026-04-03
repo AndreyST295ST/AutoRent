@@ -63,8 +63,6 @@
 
       try {
         const response = await window.authAPI.login({ email, password });
-        window.api.setToken(response.access_token);
-        window.Utils.setToken(response.access_token);
         window.Utils.setCurrentUser(response.user);
         window.Utils.showNotification("success", "Успешный вход");
         setTimeout(() => {

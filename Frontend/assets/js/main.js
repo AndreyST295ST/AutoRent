@@ -11,6 +11,8 @@
         : "/api/v1",
     TOKEN_KEY: "auth_token",
     USER_KEY: "user_data",
+    CSRF_COOKIE_NAME: "csrf_token",
+    CSRF_HEADER_NAME: "X-CSRF-Token",
     DEBUG: false,
   };
 
@@ -70,7 +72,7 @@
     },
 
     isAuthenticated() {
-      return !!localStorage.getItem(APP_CONFIG.TOKEN_KEY);
+      return !!localStorage.getItem(APP_CONFIG.USER_KEY);
     },
 
     getCurrentUser() {
@@ -83,6 +85,10 @@
     },
 
     setToken(token) {
+      if (!token) {
+        localStorage.removeItem(APP_CONFIG.TOKEN_KEY);
+        return;
+      }
       localStorage.setItem(APP_CONFIG.TOKEN_KEY, token);
     },
 
@@ -158,6 +164,7 @@
 
     closeMobileNav() {
       if (!this.nav || !this.mobileToggle) return;
+      this.element?.classList.remove("header--mobile-open");
       this.nav.classList.remove("nav--open");
       this.mobileToggle.setAttribute("aria-expanded", "false");
       this.mobileToggle.textContent = "☰";
@@ -166,7 +173,8 @@
     attachEvents() {
       if (this.mobileToggle && this.nav) {
         this.mobileToggle.addEventListener("click", () => {
-          const isOpen = this.nav.classList.toggle("nav--open");
+          const isOpen = this.element?.classList.toggle("header--mobile-open");
+          this.nav.classList.toggle("nav--open", Boolean(isOpen));
           this.mobileToggle.setAttribute("aria-expanded", String(isOpen));
           this.mobileToggle.textContent = isOpen ? "✕" : "☰";
         });
@@ -187,6 +195,20 @@
       if (user && Utils.isAuthenticated()) {
         this.renderUser(user);
       } else {
+        this.restoreSessionFromCookie();
+      }
+    }
+
+    async restoreSessionFromCookie() {
+      if (!window.authAPI?.me) {
+        this.renderGuest();
+        return;
+      }
+      try {
+        const user = await window.authAPI.me();
+        Utils.setCurrentUser(user);
+        this.renderUser(user);
+      } catch (_) {
         this.renderGuest();
       }
     }
@@ -212,9 +234,17 @@
 
       const logoutBtn = document.getElementById("logoutBtn");
       if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-          Utils.clearUserData();
-          window.location.href = "/pages/Login.html";
+        logoutBtn.addEventListener("click", async () => {
+          try {
+            if (window.authAPI?.logout) {
+              await window.authAPI.logout();
+            }
+          } catch (_) {
+            // ignore network errors during logout cleanup
+          } finally {
+            Utils.clearUserData();
+            window.location.href = "/pages/Login.html";
+          }
         });
       }
 

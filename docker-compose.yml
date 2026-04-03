@@ -10,16 +10,32 @@
       - "${BACKEND_PORT:-8000}:8000"
     environment:
       - DATABASE_URL=postgresql+asyncpg://autorent_user:autorent_password@db:5432/autorent
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - SECRET_KEY=${SECRET_KEY:-}
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REQUIRE_EMAIL_ACTIVATION=${REQUIRE_EMAIL_ACTIVATION:-False}
+      - ENABLE_DEMO_ADMIN=${ENABLE_DEMO_ADMIN:-True}
+      - DEMO_ADMIN_LOGIN=${DEMO_ADMIN_LOGIN:-admin}
+      - DEMO_ADMIN_EMAIL=${DEMO_ADMIN_EMAIL:-admin@autorent.ru}
+      - DEMO_ADMIN_PASSWORD=${DEMO_ADMIN_PASSWORD:-admin}
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - EMAIL_FROM=${EMAIL_FROM:-noreply@autorent.ru}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
-      - DEBUG=${DEBUG:-True}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost,http://127.0.0.1}
+      - AUTH_COOKIE_NAME=${AUTH_COOKIE_NAME:-access_token}
+      - CSRF_COOKIE_NAME=${CSRF_COOKIE_NAME:-csrf_token}
+      - CSRF_HEADER_NAME=${CSRF_HEADER_NAME:-X-CSRF-Token}
+      - COOKIE_SECURE=${COOKIE_SECURE:-False}
+      - COOKIE_SAMESITE=${COOKIE_SAMESITE:-lax}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-}
+      - MAX_DOCUMENT_FILE_SIZE_MB=${MAX_DOCUMENT_FILE_SIZE_MB:-10}
+      - MAX_CAR_PHOTO_FILE_SIZE_MB=${MAX_CAR_PHOTO_FILE_SIZE_MB:-10}
+      - MAX_CAR_PHOTOS_PER_UPLOAD=${MAX_CAR_PHOTOS_PER_UPLOAD:-8}
+      - SQL_ECHO=${SQL_ECHO:-False}
+      - DEBUG=${DEBUG:-False}
     volumes:
       - ./Backend/app:/app/app
       - ./Backend/models:/app/models
@@ -82,7 +98,7 @@
       timeout: 5s
       retries: 5
 
-  # ===== pgAdmin (РѕРїС†РёРѕРЅР°Р»СЊРЅРѕ, РґР»СЏ СЂР°Р·СЂР°Р±РѕС‚РєРё) =====
+  # ===== pgAdmin =====
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: autorent-pgadmin

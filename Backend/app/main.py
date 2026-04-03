@@ -1,4 +1,5 @@
 from pathlib import Path
+import warnings
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import inspect, text
 
 from app.api.v1.router import api_router
+from app.config import settings
 from app.database import AsyncSessionLocal, Base, engine
 from app.services.auth_service import AuthService
 from models import booking, car, document, review, user  # noqa: F401
@@ -13,28 +15,45 @@ from models import booking, car, document, review, user  # noqa: F401
 app = FastAPI(title="AutoRent API")
 uploads_dir = Path("uploads")
 uploads_dir.mkdir(parents=True, exist_ok=True)
+(uploads_dir / "cars").mkdir(parents=True, exist_ok=True)
+
+def _build_cors_origins() -> list[str]:
+    raw = [item.strip() for item in (settings.CORS_ORIGINS or "").split(",") if item.strip()]
+    if settings.FRONTEND_URL:
+        raw.append(settings.FRONTEND_URL.rstrip("/"))
+    # Keep order stable while removing duplicates.
+    seen: set[str] = set()
+    prepared: list[str] = []
+    for origin in raw:
+        if origin in seen:
+            continue
+        seen.add(origin)
+        prepared.append(origin)
+    return prepared
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost",
-        "http://127.0.0.1",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5500",
-        "https://autorent.ru",
-    ],
+    allow_origins=_build_cors_origins(),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", settings.CSRF_HEADER_NAME],
 )
 
 app.include_router(api_router, prefix="/api/v1")
-app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+app.mount("/uploads/cars", StaticFiles(directory=uploads_dir / "cars"), name="uploads-cars")
 
 
 @app.on_event("startup")
 async def startup():
+    if settings.COOKIE_SAMESITE == "none" and not settings.COOKIE_SECURE:
+        raise RuntimeError("COOKIE_SECURE must be True when COOKIE_SAMESITE=none")
+    if settings.ENABLE_DEMO_ADMIN and not settings.DEBUG:
+        warnings.warn(
+            "ENABLE_DEMO_ADMIN=True in non-debug mode. Disable it for production environments.",
+            RuntimeWarning,
+            stacklevel=1,
+        )
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

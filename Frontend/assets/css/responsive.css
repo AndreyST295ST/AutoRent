@@ -71,19 +71,23 @@
 
   .nav {
     display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
+    width: 100%;
+    order: 3;
+    position: static;
     background: var(--primary-600);
     flex-direction: column;
     padding: var(--space-4);
     gap: var(--space-2);
-    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-md);
   }
   
+  .header.header--mobile-open .nav,
   .nav.nav--open {
     display: flex;
+  }
+
+  .nav .nav__link {
+    width: 100%;
   }
   
   .mobile-toggle {
@@ -93,10 +97,14 @@
   }
   
   .user-menu {
-    display: flex;
+    display: none;
     width: 100%;
-    order: 3;
+    order: 4;
     justify-content: flex-start;
+  }
+
+  .header.header--mobile-open .user-menu {
+    display: flex;
   }
 
   .auth-buttons {

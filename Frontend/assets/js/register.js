@@ -42,14 +42,17 @@
         phone,
         password,
       });
-      if (registerResponse?.activation_token) {
-        await window.authAPI.activate(registerResponse.activation_token);
-      }
+      const needsActivation = Boolean(registerResponse?.activation_required);
       if (modal) {
         modal.style.display = "flex";
         modal.classList.add("modal--visible");
       } else {
-        window.Utils.showNotification("success", "Регистрация завершена");
+        window.Utils.showNotification(
+          "success",
+          needsActivation
+            ? "Регистрация завершена. Подтвердите аккаунт через email."
+            : "Регистрация завершена"
+        );
         setTimeout(() => (window.location.href = "/pages/Login.html"), 1000);
       }
     } catch (error) {
