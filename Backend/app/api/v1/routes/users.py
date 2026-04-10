@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,10 +26,10 @@ async def get_user(
     current_user: User = Depends(get_current_active_user),
 ):
     if current_user.role != UserRole.ADMIN and current_user.id != user_id:
-        raise HTTPException(status_code=403, detail="Access denied")
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
     user = await db.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     return user
 
 
@@ -41,10 +41,10 @@ async def update_user(
     current_user: User = Depends(get_current_active_user),
 ):
     if current_user.role != UserRole.ADMIN and current_user.id != user_id:
-        raise HTTPException(status_code=403, detail="Access denied")
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
     user = await db.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
 
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(user, key, value)
@@ -63,12 +63,12 @@ async def update_user_status(
     if user_id == current_admin.id and payload.status != UserStatus.ACTIVE:
         raise HTTPException(
             status_code=400,
-            detail="Admin cannot block own account",
+            detail="Администратор не может заблокировать собственную учетную запись",
         )
 
     user = await db.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     user.status = payload.status
     await db.commit()
     await db.refresh(user)

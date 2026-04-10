@@ -93,9 +93,9 @@ def _safe_upload_path(storage_relative_path: str) -> Path:
     candidate = (UPLOAD_DIR / storage_relative_path).resolve()
     base = UPLOAD_DIR.resolve()
     if not (candidate == base or base in candidate.parents):
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(status_code=404, detail="Файл не найден")
     if not candidate.exists() or not candidate.is_file():
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(status_code=404, detail="Файл не найден")
     return candidate
 
 
@@ -111,17 +111,17 @@ def _extract_booking_id_from_path(storage_relative_path: str) -> int | None:
 
 def _validate_document_upload(file: UploadFile) -> str:
     if not file.filename:
-        raise HTTPException(status_code=400, detail="Filename is required")
+        raise HTTPException(status_code=400, detail="Имя файла обязательно")
 
     extension = Path(file.filename).suffix.lower()
     if extension not in ALLOWED_DOC_EXTENSIONS:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported file format '{extension}'. Allowed: {', '.join(sorted(ALLOWED_DOC_EXTENSIONS))}",
+            detail=f"Неподдерживаемый формат файла '{extension}'. Разрешено: {', '.join(sorted(ALLOWED_DOC_EXTENSIONS))}",
         )
 
     if file.content_type and file.content_type.lower() not in ALLOWED_DOC_CONTENT_TYPES:
-        raise HTTPException(status_code=400, detail=f"Unsupported content type: {file.content_type}")
+        raise HTTPException(status_code=400, detail=f"Неподдерживаемый тип содержимого: {file.content_type}")
 
     return extension
 
@@ -139,7 +139,7 @@ async def _save_upload(file: UploadFile, suffix: str) -> str:
                 if written > MAX_DOC_FILE_SIZE_BYTES:
                     raise HTTPException(
                         status_code=413,
-                        detail=f"File '{file.filename}' exceeds {settings.MAX_DOCUMENT_FILE_SIZE_MB} MB",
+                        detail=f"Файл '{file.filename}' превышает {settings.MAX_DOCUMENT_FILE_SIZE_MB} МБ",
                     )
                 stream.write(chunk)
     except Exception:
@@ -341,7 +341,7 @@ async def _send_documents_notification_safe(
         )
     except Exception as exc:
         LOGGER.warning(
-            "Documents email notification failed for client_id=%s: %s",
+            "Не удалось отправить email-уведомление по документам client_id=%s: %s",
             client_id,
             exc,
         )
@@ -382,12 +382,12 @@ async def read_private_file(
 ):
     storage_relative_path = _extract_storage_relative_path(file_path)
     if not storage_relative_path:
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(status_code=404, detail="Файл не найден")
 
     if current_user.role not in {UserRole.ADMIN, UserRole.EMPLOYEE}:
         allowed = await _client_owns_storage_path(db, current_user, storage_relative_path)
         if not allowed:
-            raise HTTPException(status_code=403, detail="Access denied")
+            raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     target = _safe_upload_path(storage_relative_path)
     return FileResponse(target)
@@ -432,7 +432,7 @@ async def get_client_entity(
 ):
     client = await db.get(Client, client_id)
     if not client:
-        raise HTTPException(status_code=404, detail="Client not found")
+        raise HTTPException(status_code=404, detail="Клиент не найден")
 
     entities = await _build_client_entities(db, {client_id})
     entity = entities.get(client_id) or {
@@ -536,16 +536,16 @@ async def upload_documents(
     license_files = [file for file in (license or []) if file and file.filename]
 
     if not passport_files or not license_files:
-        raise HTTPException(status_code=400, detail="Passport and driver license files are required")
+        raise HTTPException(status_code=400, detail="Необходимо загрузить файлы паспорта и водительского удостоверения")
     if len(passport_files) > MAX_DOC_FILES_PER_TYPE:
         raise HTTPException(
             status_code=400,
-            detail=f"At most {MAX_DOC_FILES_PER_TYPE} passport files are allowed",
+            detail=f"Допустимо не более {MAX_DOC_FILES_PER_TYPE} файлов паспорта",
         )
     if len(license_files) > MAX_DOC_FILES_PER_TYPE:
         raise HTTPException(
             status_code=400,
-            detail=f"At most {MAX_DOC_FILES_PER_TYPE} license files are allowed",
+            detail=f"Допустимо не более {MAX_DOC_FILES_PER_TYPE} файлов водительского удостоверения",
         )
 
     passport_paths: list[str] = []
@@ -586,7 +586,7 @@ async def upload_documents(
         verification_status=DocumentStatus.PENDING,
     )
     return {
-        "message": "Documents uploaded",
+        "message": "Документы загружены",
         "client_id": doc.client_id,
         "verification_status": doc.verification_status,
         "passport_scan_urls": [_build_document_file_url(path) for path in doc.passport_scan_urls or []],
@@ -603,16 +603,16 @@ async def get_rental_document(
     if current_user.role not in {UserRole.ADMIN, UserRole.EMPLOYEE}:
         booking = await db.get(Booking, booking_id)
         if not booking:
-            raise HTTPException(status_code=404, detail="Booking not found")
+            raise HTTPException(status_code=404, detail="Бронь не найдена")
         client = await db.execute(select(Client).where(Client.user_id == current_user.id))
         current_client = client.scalar_one_or_none()
         if not current_client or booking.client_id != current_client.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+            raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     result = await db.execute(select(RentalDocument).where(RentalDocument.booking_id == booking_id))
     document = result.scalar_one_or_none()
     if not document:
-        raise HTTPException(status_code=404, detail="Rental documents not found")
+        raise HTTPException(status_code=404, detail="Документы аренды не найдены")
     contract_path = _extract_storage_relative_path(document.contract_path)
     act_path = _extract_storage_relative_path(document.act_path)
     power_of_attorney_path = _extract_storage_relative_path(document.power_of_attorney_path)
@@ -640,7 +640,7 @@ async def verify_client_documents(
     result = await db.execute(select(ClientDocument).where(ClientDocument.client_id == client_id))
     doc = result.scalar_one_or_none()
     if not doc:
-        raise HTTPException(status_code=404, detail="Client documents not found")
+        raise HTTPException(status_code=404, detail="Документы клиента не найдены")
 
     doc.verification_status = payload.status
     doc.verified_by = current_user.id
@@ -657,7 +657,10 @@ async def verify_client_documents(
         rejection_reason=doc.rejection_reason,
     )
     return {
-        "message": "Documents verification status updated",
+        "message": "Статус проверки документов обновлен",
         "client_id": client_id,
         "verification_status": doc.verification_status,
     }
+
+
+

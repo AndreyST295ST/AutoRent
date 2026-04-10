@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_active_user, get_current_client
@@ -34,7 +34,7 @@ async def get_review(review_id: int, db: AsyncSession = Depends(get_db)):
     service = ReviewService(db)
     review = await service.get_review(review_id)
     if not review or review.status != ReviewStatus.PUBLISHED:
-        raise HTTPException(status_code=404, detail="Review not found")
+        raise HTTPException(status_code=404, detail="Отзыв не найден")
     return review
 
 
@@ -62,15 +62,15 @@ async def update_review(
 
     is_admin = current_user.role == UserRole.ADMIN
     if current_user.role not in {UserRole.ADMIN, UserRole.CLIENT}:
-        raise HTTPException(status_code=403, detail="Access denied")
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     client_id: int | None = None
     if not is_admin:
         if payload.status is not None:
-            raise HTTPException(status_code=403, detail="Only admin can change review status")
+            raise HTTPException(status_code=403, detail="Только администратор может менять статус отзыва")
         client = await service.get_client_by_user_id(current_user.id)
         if not client:
-            raise HTTPException(status_code=404, detail="Client profile not found")
+            raise HTTPException(status_code=404, detail="Профиль клиента не найден")
         client_id = client.id
 
     try:
@@ -84,7 +84,7 @@ async def update_review(
         raise HTTPException(status_code=403, detail=str(exc)) from exc
 
     if not review:
-        raise HTTPException(status_code=404, detail="Review not found")
+        raise HTTPException(status_code=404, detail="Отзыв не найден")
     return review
 
 
@@ -98,13 +98,13 @@ async def delete_review(
 
     is_admin = current_user.role == UserRole.ADMIN
     if current_user.role not in {UserRole.ADMIN, UserRole.CLIENT}:
-        raise HTTPException(status_code=403, detail="Access denied")
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     client_id: int | None = None
     if not is_admin:
         client = await service.get_client_by_user_id(current_user.id)
         if not client:
-            raise HTTPException(status_code=404, detail="Client profile not found")
+            raise HTTPException(status_code=404, detail="Профиль клиента не найден")
         client_id = client.id
 
     try:
@@ -117,6 +117,6 @@ async def delete_review(
         raise HTTPException(status_code=403, detail=str(exc)) from exc
 
     if not deleted:
-        raise HTTPException(status_code=404, detail="Review not found")
+        raise HTTPException(status_code=404, detail="Отзыв не найден")
     return None
 

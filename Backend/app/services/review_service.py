@@ -1,4 +1,4 @@
-from sqlalchemy import select
+﻿from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.booking import Booking, BookingStatus
@@ -39,7 +39,7 @@ class ReviewService:
     async def create_review(self, client_id: int, payload: ReviewCreate) -> Review:
         car = await self.db.get(Car, payload.car_id)
         if not car:
-            raise ValueError("Car not found")
+            raise ValueError("\u0410\u0432\u0442\u043e\u043c\u043e\u0431\u0438\u043b\u044c \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d")
 
         completed_booking = await self.db.execute(
             select(Booking.id).where(
@@ -49,7 +49,7 @@ class ReviewService:
             )
         )
         if not completed_booking.scalar_one_or_none():
-            raise ValueError("Review can be left only after completed rental")
+            raise ValueError("\u041e\u0442\u0437\u044b\u0432 \u043c\u043e\u0436\u043d\u043e \u043e\u0441\u0442\u0430\u0432\u0438\u0442\u044c \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e\u0441\u043b\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u043d\u043e\u0439 \u0430\u0440\u0435\u043d\u0434\u044b")
 
         existing_review = await self.db.execute(
             select(Review.id).where(
@@ -58,7 +58,7 @@ class ReviewService:
             )
         )
         if existing_review.scalar_one_or_none():
-            raise ValueError("Review for this car already exists")
+            raise ValueError("\u041e\u0442\u0437\u044b\u0432 \u0434\u043b\u044f \u044d\u0442\u043e\u0433\u043e \u0430\u0432\u0442\u043e\u043c\u043e\u0431\u0438\u043b\u044f \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442")
 
         review = Review(
             client_id=client_id,
@@ -82,7 +82,7 @@ class ReviewService:
         if not review:
             return None
         if not is_admin and review.client_id != client_id:
-            raise PermissionError("Access denied")
+            raise PermissionError("\u0414\u043e\u0441\u0442\u0443\u043f \u0437\u0430\u043f\u0440\u0435\u0449\u0435\u043d")
 
         for key, value in payload.model_dump(exclude_unset=True).items():
             setattr(review, key, value)
@@ -101,8 +101,9 @@ class ReviewService:
         if not review:
             return False
         if not is_admin and review.client_id != client_id:
-            raise PermissionError("Access denied")
+            raise PermissionError("\u0414\u043e\u0441\u0442\u0443\u043f \u0437\u0430\u043f\u0440\u0435\u0449\u0435\u043d")
 
         await self.db.delete(review)
         await self.db.commit()
         return True
+

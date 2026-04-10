@@ -19,7 +19,7 @@ class AuthService:
     async def register(self, user_data: UserCreate) -> tuple[User, str | None]:
         result = await self.db.execute(select(User).where(User.email == user_data.email))
         if result.scalar_one_or_none():
-            raise ValueError("Email already exists")
+            raise ValueError("Пользователь с таким email уже существует")
 
         requires_activation = bool(settings.REQUIRE_EMAIL_ACTIVATION)
 
@@ -56,9 +56,9 @@ class AuthService:
         )
         user = result.scalar_one_or_none()
         if not user:
-            raise ValueError("User not found")
+            raise ValueError("Пользователь не найден")
         if user.status == UserStatus.ACTIVE:
-            raise ValueError("Account is already active")
+            raise ValueError("Аккаунт уже активирован")
 
         result = await self.db.execute(select(ActivationToken).where(ActivationToken.user_id == user.id))
         activation_token = result.scalar_one_or_none()
@@ -102,11 +102,11 @@ class AuthService:
         )
         activation_token = result.scalar_one_or_none()
         if not activation_token:
-            raise ValueError("Activation token is invalid or expired")
+            raise ValueError("Токен активации недействителен или истек")
 
         user = await self.db.get(User, activation_token.user_id)
         if not user:
-            raise ValueError("User not found")
+            raise ValueError("Пользователь не найден")
 
         user.status = UserStatus.ACTIVE
         activation_token.is_used = True
@@ -186,6 +186,7 @@ class AuthService:
             return None
 
         if user.status != UserStatus.ACTIVE:
-            raise ValueError("Account is not activated")
+            raise ValueError("Аккаунт не активирован")
 
         return user
+

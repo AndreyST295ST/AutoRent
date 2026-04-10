@@ -1,4 +1,4 @@
-import secrets
+﻿import secrets
 
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
@@ -123,7 +123,7 @@ class Settings(BaseSettings):
     @classmethod
     def validate_positive_ints(cls, value):
         if int(value) <= 0:
-            raise ValueError("Value must be > 0")
+            raise ValueError("\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u0434\u043e\u043b\u0436\u043d\u043e \u0431\u044b\u0442\u044c \u0431\u043e\u043b\u044c\u0448\u0435 0")
         return int(value)
 
     @field_validator("SECRET_KEY")
@@ -133,9 +133,9 @@ class Settings(BaseSettings):
         if not stripped:
             return secrets.token_urlsafe(48)
         if len(stripped) < 32:
-            raise ValueError("SECRET_KEY must be at least 32 characters")
+            raise ValueError("SECRET_KEY \u0434\u043e\u043b\u0436\u0435\u043d \u0441\u043e\u0434\u0435\u0440\u0436\u0430\u0442\u044c \u043c\u0438\u043d\u0438\u043c\u0443\u043c 32 \u0441\u0438\u043c\u0432\u043e\u043b\u0430")
         if "change_me" in stripped.lower():
-            raise ValueError("Set a real SECRET_KEY value")
+            raise ValueError("\u0423\u043a\u0430\u0436\u0438\u0442\u0435 \u0440\u0435\u0430\u043b\u044c\u043d\u043e\u0435 \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435 SECRET_KEY")
         return stripped
 
     class Config:
@@ -147,3 +147,4 @@ def get_settings() -> Settings:
     return Settings()
 
 settings = get_settings()
+

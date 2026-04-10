@@ -61,7 +61,11 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
             raise
 
     return RegisterResponse(
-        message="Account created successfully" if not activation_required else "Check your email to activate account",
+        message=(
+            "Аккаунт успешно создан"
+            if not activation_required
+            else "Проверьте почту для активации аккаунта"
+        ),
         user_id=user.id,
         activation_required=activation_required,
     )
@@ -76,7 +80,7 @@ async def resend_activation_email(payload: ResendActivationRequest, db: AsyncSes
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     await _send_activation_email_or_raise(user=user, activation_token=activation_token)
-    return ActivationResponse(message="Activation email sent")
+    return ActivationResponse(message="Письмо активации отправлено")
 
 
 @router.post("/login", response_model=Token)
@@ -92,7 +96,7 @@ async def login(
         raise HTTPException(status_code=403, detail=str(exc)) from exc
 
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=401, detail="Неверная эл. почта или пароль")
 
     access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
     csrf_token = secrets.token_urlsafe(32)
@@ -132,7 +136,7 @@ async def activate_account(token: str, db: AsyncSession = Depends(get_db)):
         await service.activate_account(token)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return ActivationResponse(message="Account successfully activated")
+    return ActivationResponse(message="Аккаунт успешно активирован")
 
 
 @router.post("/logout")
@@ -147,7 +151,7 @@ async def logout(response: Response):
         path="/",
         domain=settings.COOKIE_DOMAIN,
     )
-    return {"message": "Logged out"}
+    return {"message": "Вы вышли из аккаунта"}
 
 
 @router.get("/me", response_model=UserResponse)
@@ -155,3 +159,4 @@ async def me(
     current_user: User = Depends(get_current_active_user),
 ):
     return UserResponse.model_validate(current_user)
+

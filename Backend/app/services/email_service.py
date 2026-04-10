@@ -1,4 +1,4 @@
-﻿from email.message import EmailMessage
+from email.message import EmailMessage
 
 import aiosmtplib
 from aiosmtplib.errors import SMTPAuthenticationError
@@ -10,11 +10,11 @@ class EmailService:
     @staticmethod
     def _ensure_smtp_config() -> None:
         if not settings.SMTP_HOST:
-            raise ValueError("SMTP_HOST is not configured")
+            raise ValueError("Не задан SMTP_HOST")
         if not settings.SMTP_USER:
-            raise ValueError("SMTP_USER is not configured")
+            raise ValueError("Не задан SMTP_USER")
         if not settings.SMTP_PASSWORD:
-            raise ValueError("SMTP_PASSWORD is not configured")
+            raise ValueError("Не задан SMTP_PASSWORD")
 
     async def send_activation_email(self, recipient_email: str, first_name: str, activation_link: str) -> None:
         self._ensure_smtp_config()

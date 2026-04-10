@@ -46,10 +46,10 @@ app.mount("/uploads/cars", StaticFiles(directory=uploads_dir / "cars"), name="up
 @app.on_event("startup")
 async def startup():
     if settings.COOKIE_SAMESITE == "none" and not settings.COOKIE_SECURE:
-        raise RuntimeError("COOKIE_SECURE must be True when COOKIE_SAMESITE=none")
+        raise RuntimeError("РџСЂРё COOKIE_SAMESITE=none РїР°СЂР°РјРµС‚СЂ COOKIE_SECURE РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ True")
     if settings.ENABLE_DEMO_ADMIN and not settings.DEBUG:
         warnings.warn(
-            "ENABLE_DEMO_ADMIN=True in non-debug mode. Disable it for production environments.",
+            "ENABLE_DEMO_ADMIN=True РїСЂРё РІС‹РєР»СЋС‡РµРЅРЅРѕРј DEBUG. РћС‚РєР»СЋС‡РёС‚Рµ СЌС‚Сѓ РЅР°СЃС‚СЂРѕР№РєСѓ РґР»СЏ production.",
             RuntimeWarning,
             stacklevel=1,
         )

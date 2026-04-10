@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -82,7 +82,7 @@ async def _send_booking_notification_safe(db: AsyncSession, booking_id: int) -> 
             return
         await EmailService().send_booking_notification_email(**context)
     except Exception as exc:
-        LOGGER.warning("Booking email notification failed for booking_id=%s: %s", booking_id, exc)
+        LOGGER.warning("Не удалось отправить email-уведомление по брони booking_id=%s: %s", booking_id, exc)
 
 
 @router.get("/", response_model=list[BookingResponse])
@@ -129,11 +129,11 @@ async def get_booking(
     service = BookingService(db)
     booking = await service.get_booking(booking_id)
     if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
+        raise HTTPException(status_code=404, detail="Бронь не найдена")
     if not _is_employee_or_admin(current_user):
         current_client = await service.get_client_by_user_id(current_user.id)
         if not current_client or booking.client_id != current_client.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+            raise HTTPException(status_code=403, detail="Доступ запрещен")
     return booking
 
 
@@ -146,12 +146,12 @@ async def cancel_booking(
     service = BookingService(db)
     booking = await service.get_booking(booking_id)
     if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
+        raise HTTPException(status_code=404, detail="Бронь не найдена")
 
     if not _is_employee_or_admin(current_user):
         current_client = await service.get_client_by_user_id(current_user.id)
         if not current_client or booking.client_id != current_client.id:
-            raise HTTPException(status_code=403, detail="Access denied")
+            raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     booking = await service.cancel(booking_id)
     await _send_booking_notification_safe(db, booking_id)
@@ -167,7 +167,7 @@ async def confirm_booking(
     service = BookingService(db)
     booking = await service.confirm(booking_id, employee_id=current_user.id)
     if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
+        raise HTTPException(status_code=404, detail="Бронь не найдена")
     await _send_booking_notification_safe(db, booking_id)
     return booking
 
@@ -181,7 +181,7 @@ async def reject_booking(
     service = BookingService(db)
     booking = await service.reject(booking_id)
     if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
+        raise HTTPException(status_code=404, detail="Бронь не найдена")
     await _send_booking_notification_safe(db, booking_id)
     return booking
 
@@ -198,7 +198,7 @@ async def pickup_booking(
     service = BookingService(db)
     booking = await service.pickup(booking_id, odometer=odometer, fuel=fuel)
     if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
+        raise HTTPException(status_code=404, detail="Бронь не найдена")
     await _send_booking_notification_safe(db, booking_id)
     return booking
 
@@ -221,7 +221,7 @@ async def return_booking(
         damages=damages,
     )
     if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
+        raise HTTPException(status_code=404, detail="Бронь не найдена")
     await _send_booking_notification_safe(db, booking_id)
     return booking
 
@@ -235,5 +235,5 @@ async def generate_documents(
     service = BookingService(db)
     docs = await service.generate_documents(booking_id, generated_by=current_user.id)
     if not docs:
-        raise HTTPException(status_code=404, detail="Booking not found")
+        raise HTTPException(status_code=404, detail="Бронь не найдена")
     return docs

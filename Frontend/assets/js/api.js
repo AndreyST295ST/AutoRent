@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AutoRent - API client (global build).
  */
 
@@ -67,7 +67,7 @@
 
     async handleResponse(response) {
       if (!response.ok) {
-        let error = { detail: `HTTP ${response.status}` };
+        let error = { detail: `\u041e\u0448\u0438\u0431\u043a\u0430 HTTP ${response.status}` };
         try {
           error = await response.json();
         } catch (e) {
@@ -86,7 +86,7 @@
     }
 
     formatErrorMessage(error, statusCode) {
-      const fallback = `HTTP ${statusCode}`;
+      const fallback = `\u041e\u0448\u0438\u0431\u043a\u0430 HTTP ${statusCode}`;
       if (!error || error.detail === undefined || error.detail === null) {
         return fallback;
       }
@@ -101,8 +101,8 @@
             if (typeof item === "string") return item;
             if (!item || typeof item !== "object") return "";
             const field = Array.isArray(item.loc) ? item.loc[item.loc.length - 1] : "";
-            const fieldName = field && field !== "body" ? `${field}: ` : "";
-            return `${fieldName}${item.msg || ""}`.trim();
+            const fieldName = field && field !== "body" ? `${this.translateFieldName(field)}: ` : "";
+            return `${fieldName}${this.translateValidationMessage(item.msg || "")}`.trim();
           })
           .filter(Boolean);
         return parts.length ? parts.join("; ") : fallback;
@@ -111,14 +111,56 @@
       return fallback;
     }
 
+    translateFieldName(field) {
+      const map = {
+        email: "\u042d\u043b. \u043f\u043e\u0447\u0442\u0430",
+        password: "\u041f\u0430\u0440\u043e\u043b\u044c",
+        first_name: "\u0418\u043c\u044f",
+        last_name: "\u0424\u0430\u043c\u0438\u043b\u0438\u044f",
+        phone: "\u0422\u0435\u043b\u0435\u0444\u043e\u043d",
+        start_date: "\u0414\u0430\u0442\u0430 \u043d\u0430\u0447\u0430\u043b\u0430",
+        end_date: "\u0414\u0430\u0442\u0430 \u043e\u043a\u043e\u043d\u0447\u0430\u043d\u0438\u044f",
+        car_id: "\u0410\u0432\u0442\u043e\u043c\u043e\u0431\u0438\u043b\u044c",
+        status: "\u0421\u0442\u0430\u0442\u0443\u0441",
+      };
+      return map[field] || field;
+    }
+
+    translateValidationMessage(message) {
+      const map = {
+        "Field required": "\u041f\u043e\u043b\u0435 \u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u043e",
+        "Input should be a valid string": "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u0443\u044e \u0441\u0442\u0440\u043e\u043a\u0443",
+        "Input should be a valid integer": "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u043e\u0435 \u0446\u0435\u043b\u043e\u0435 \u0447\u0438\u0441\u043b\u043e",
+        "Input should be a valid number": "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u043e\u0435 \u0447\u0438\u0441\u043b\u043e",
+        "Input should be a valid boolean": "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u043e\u0435 \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u0434\u0430/\u043d\u0435\u0442",
+        "Input should be a valid date": "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u0443\u044e \u0434\u0430\u0442\u0443",
+        "Input should be a valid datetime": "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u0443\u044e \u0434\u0430\u0442\u0443 \u0438 \u0432\u0440\u0435\u043c\u044f",
+        "String should have at least 1 character": "\u041f\u043e\u043b\u0435 \u043d\u0435 \u0434\u043e\u043b\u0436\u043d\u043e \u0431\u044b\u0442\u044c \u043f\u0443\u0441\u0442\u044b\u043c",
+      };
+      return map[message] || message;
+    }
+
     async request(endpoint, options = {}) {
       const url = `${this.baseURL}${endpoint}`;
       const method = options.method || "GET";
-      const response = await fetch(url, {
-        ...options,
-        credentials: "include",
-        headers: this.getHeaders(options.headers || {}, method),
-      });
+      let response;
+      try {
+        response = await fetch(url, {
+          ...options,
+          credentials: "include",
+          headers: this.getHeaders(options.headers || {}, method),
+        });
+      } catch (error) {
+        const message = String(error?.message || "");
+        if (
+          message.includes("Failed to fetch") ||
+          message.includes("NetworkError") ||
+          message.includes("Load failed")
+        ) {
+          throw new Error("\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0438\u0442\u044c\u0441\u044f \u043a \u0441\u0435\u0440\u0432\u0435\u0440\u0443. \u041f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u0438\u043d\u0442\u0435\u0440\u043d\u0435\u0442 \u0438 \u043f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u0435 \u043f\u043e\u043f\u044b\u0442\u043a\u0443.");
+        }
+        throw new Error("\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u0435\u0442\u0435\u0432\u043e\u0433\u043e \u0437\u0430\u043f\u0440\u043e\u0441\u0430. \u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0435\u0449\u0435 \u0440\u0430\u0437.");
+      }
       return this.handleResponse(response);
     }
 
@@ -165,12 +207,25 @@
     async upload(endpoint, formData) {
       const headers = this.getHeaders({}, "POST");
       delete headers["Content-Type"];
-      const response = await fetch(`${this.baseURL}${endpoint}`, {
-        method: "POST",
-        credentials: "include",
-        headers,
-        body: formData,
-      });
+      let response;
+      try {
+        response = await fetch(`${this.baseURL}${endpoint}`, {
+          method: "POST",
+          credentials: "include",
+          headers,
+          body: formData,
+        });
+      } catch (error) {
+        const message = String(error?.message || "");
+        if (
+          message.includes("Failed to fetch") ||
+          message.includes("NetworkError") ||
+          message.includes("Load failed")
+        ) {
+          throw new Error("\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0438\u0442\u044c\u0441\u044f \u043a \u0441\u0435\u0440\u0432\u0435\u0440\u0443. \u041f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u0438\u043d\u0442\u0435\u0440\u043d\u0435\u0442 \u0438 \u043f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u0435 \u043f\u043e\u043f\u044b\u0442\u043a\u0443.");
+        }
+        throw new Error("\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u0435\u0442\u0435\u0432\u043e\u0433\u043e \u0437\u0430\u043f\u0440\u043e\u0441\u0430. \u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0435\u0449\u0435 \u0440\u0430\u0437.");
+      }
       return this.handleResponse(response);
     }
   }
@@ -240,3 +295,4 @@
   window.documentsAPI = documentsAPI;
   window.usersAPI = usersAPI;
 })();
+

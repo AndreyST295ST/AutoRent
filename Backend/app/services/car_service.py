@@ -1,4 +1,4 @@
-from datetime import datetime
+﻿from datetime import datetime
 
 from sqlalchemy import Select, and_, func, not_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -96,7 +96,7 @@ class CarService:
     async def create_car(self, data: CarCreate) -> Car:
         existing = await self.db.execute(select(Car).where(Car.license_plate == data.license_plate))
         if existing.scalar_one_or_none():
-            raise ValueError("License plate already exists")
+            raise ValueError("\u0410\u0432\u0442\u043e\u043c\u043e\u0431\u0438\u043b\u044c \u0441 \u0442\u0430\u043a\u0438\u043c \u0433\u043e\u0441\u043d\u043e\u043c\u0435\u0440\u043e\u043c \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442")
 
         car = Car(**data.model_dump())
         self.db.add(car)
@@ -126,3 +126,4 @@ class CarService:
         await self.db.delete(car)
         await self.db.commit()
         return True
+

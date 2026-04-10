@@ -37,20 +37,20 @@ class BookingService:
 
     async def create_booking(self, data: BookingCreate) -> Booking:
         if data.end_date <= data.start_date:
-            raise ValueError("End date must be later than start date")
+            raise ValueError("Дата окончания должна быть позже даты начала")
 
         car = await self.db.get(Car, data.car_id)
         if not car:
-            raise ValueError("Car not found")
+            raise ValueError("Автомобиль не найден")
         if car.status in {CarStatus.MAINTENANCE, CarStatus.RETIRED}:
-            raise ValueError("Car is unavailable")
+            raise ValueError("Автомобиль недоступен для бронирования")
 
         client_id = data.client_id
         if client_id is None:
             default_client = await self.db.execute(select(Client.id).order_by(Client.id.asc()).limit(1))
             client_id = default_client.scalar_one_or_none()
         if client_id is None:
-            raise ValueError("No client profile found")
+            raise ValueError("Профиль клиента не найден")
 
         overlap = await self.db.execute(
             select(Booking.id).where(
@@ -63,7 +63,7 @@ class BookingService:
             )
         )
         if overlap.scalar_one_or_none():
-            raise ValueError("Car already booked for selected period")
+            raise ValueError("Автомобиль уже забронирован на выбранный период")
 
         days = max((data.end_date - data.start_date).days, 1)
         total_price = Decimal(days) * Decimal(car.price_per_day)
@@ -280,3 +280,4 @@ class BookingService:
         await self.db.commit()
         await self.db.refresh(booking)
         return booking
+

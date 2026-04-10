@@ -24,16 +24,16 @@ ALLOWED_CAR_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 async def _save_car_photo(file: UploadFile) -> str:
     if not file.filename:
-        raise HTTPException(status_code=400, detail="Filename is required")
+        raise HTTPException(status_code=400, detail="Имя файла обязательно")
 
     suffix = Path(file.filename).suffix.lower()
     if suffix not in ALLOWED_CAR_EXTENSIONS:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported image format '{suffix}'. Allowed: {', '.join(sorted(ALLOWED_CAR_EXTENSIONS))}",
+            detail=f"Неподдерживаемый формат изображения '{suffix}'. Разрешено: {', '.join(sorted(ALLOWED_CAR_EXTENSIONS))}",
         )
     if file.content_type and file.content_type.lower() not in ALLOWED_CAR_CONTENT_TYPES:
-        raise HTTPException(status_code=400, detail=f"File '{file.filename}' is not an image")
+        raise HTTPException(status_code=400, detail=f"Файл '{file.filename}' не является изображением")
 
     filename = f"{uuid4().hex}{suffix}"
     destination = CAR_UPLOAD_DIR / filename
@@ -45,7 +45,7 @@ async def _save_car_photo(file: UploadFile) -> str:
                 if written > MAX_CAR_FILE_SIZE_BYTES:
                     raise HTTPException(
                         status_code=413,
-                        detail=f"Image '{file.filename}' exceeds {settings.MAX_CAR_PHOTO_FILE_SIZE_MB} MB",
+                        detail=f"Изображение '{file.filename}' превышает {settings.MAX_CAR_PHOTO_FILE_SIZE_MB} МБ",
                     )
                 stream.write(chunk)
     except Exception:
@@ -69,12 +69,12 @@ async def get_cars(
     if (start_date and not end_date) or (end_date and not start_date):
         raise HTTPException(
             status_code=400,
-            detail="Both start_date and end_date are required for availability filter",
+            detail="Для фильтра доступности нужно указать дату начала и дату окончания",
         )
     if start_date and end_date and end_date <= start_date:
-        raise HTTPException(status_code=400, detail="end_date must be later than start_date")
+        raise HTTPException(status_code=400, detail="Дата окончания должна быть позже даты начала")
     if min_price is not None and max_price is not None and min_price > max_price:
-        raise HTTPException(status_code=400, detail="min_price cannot be greater than max_price")
+        raise HTTPException(status_code=400, detail="Минимальная цена не может быть больше максимальной")
 
     service = CarService(db)
     return await service.get_all_cars(
@@ -102,7 +102,7 @@ async def get_car(car_id: int, db: AsyncSession = Depends(get_db)):
     service = CarService(db)
     car = await service.get_car(car_id)
     if not car:
-        raise HTTPException(status_code=404, detail="Car not found")
+        raise HTTPException(status_code=404, detail="Автомобиль не найден")
     return car
 
 
@@ -129,7 +129,7 @@ async def update_car(
     service = CarService(db)
     car = await service.update_car(car_id, data)
     if not car:
-        raise HTTPException(status_code=404, detail="Car not found")
+        raise HTTPException(status_code=404, detail="Автомобиль не найден")
     return car
 
 
@@ -141,17 +141,17 @@ async def upload_car_photos(
     _: User = Depends(get_employee_or_admin_user),
 ):
     if not photos:
-        raise HTTPException(status_code=400, detail="No files uploaded")
+        raise HTTPException(status_code=400, detail="Файлы не загружены")
     if len(photos) > settings.MAX_CAR_PHOTOS_PER_UPLOAD:
         raise HTTPException(
             status_code=400,
-            detail=f"Too many files. Max {settings.MAX_CAR_PHOTOS_PER_UPLOAD} per request",
+            detail=f"Слишком много файлов. Максимум {settings.MAX_CAR_PHOTOS_PER_UPLOAD} за запрос",
         )
 
     service = CarService(db)
     car = await service.get_car(car_id)
     if not car:
-        raise HTTPException(status_code=404, detail="Car not found")
+        raise HTTPException(status_code=404, detail="Автомобиль не найден")
 
     new_urls: list[str] = []
     for photo in photos:
@@ -177,7 +177,7 @@ async def update_car_status(
     service = CarService(db)
     car = await service.update_status(car_id, data.status)
     if not car:
-        raise HTTPException(status_code=404, detail="Car not found")
+        raise HTTPException(status_code=404, detail="Автомобиль не найден")
     return car
 
 
@@ -190,5 +190,6 @@ async def delete_car(
     service = CarService(db)
     ok = await service.delete_car(car_id)
     if not ok:
-        raise HTTPException(status_code=404, detail="Car not found")
+        raise HTTPException(status_code=404, detail="Автомобиль не найден")
     return None
+
