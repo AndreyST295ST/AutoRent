@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from pathlib import Path
 import re
@@ -17,12 +18,14 @@ from app.api.deps import (
 )
 from app.config import settings
 from app.database import get_db
+from app.services.email_service import EmailService
 from models.booking import Booking, BookingStatus
 from models.car import Car
 from models.document import ClientDocument, DocumentStatus, RentalDocument
 from models.user import Client, User, UserRole
 
 router = APIRouter()
+LOGGER = logging.getLogger(__name__)
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -44,6 +47,12 @@ ACTIVE_BOOKING_STATUSES = {
     BookingStatus.PENDING_REVIEW,
     BookingStatus.CONFIRMED,
     BookingStatus.ACTIVE,
+}
+
+DOCUMENT_STATUS_LABELS: dict[DocumentStatus, str] = {
+    DocumentStatus.PENDING: "На проверке",
+    DocumentStatus.VERIFIED: "Подтверждены",
+    DocumentStatus.REJECTED: "Отклонены",
 }
 
 
@@ -304,6 +313,40 @@ def _collect_raw_document_paths(doc: ClientDocument | None) -> set[str]:
     return collected
 
 
+async def _send_documents_notification_safe(
+    db: AsyncSession,
+    client_id: int,
+    verification_status: DocumentStatus,
+    rejection_reason: str | None = None,
+) -> None:
+    try:
+        client_result = await db.execute(select(Client).where(Client.id == client_id))
+        client = client_result.scalar_one_or_none()
+        if not client:
+            return
+
+        user_result = await db.execute(select(User).where(User.id == client.user_id))
+        user = user_result.scalar_one_or_none()
+        if not user:
+            return
+
+        await EmailService().send_documents_verification_email(
+            recipient_email=user.email,
+            first_name=user.first_name,
+            verification_status_label=DOCUMENT_STATUS_LABELS.get(
+                verification_status, str(verification_status)
+            ),
+            rejection_reason=rejection_reason,
+            details_url=f"{settings.FRONTEND_URL.rstrip('/')}/pages/Documents.html",
+        )
+    except Exception as exc:
+        LOGGER.warning(
+            "Documents email notification failed for client_id=%s: %s",
+            client_id,
+            exc,
+        )
+
+
 async def _client_owns_storage_path(
     db: AsyncSession,
     current_user: User,
@@ -537,6 +580,11 @@ async def upload_documents(
 
     await db.commit()
     await db.refresh(doc)
+    await _send_documents_notification_safe(
+        db=db,
+        client_id=doc.client_id,
+        verification_status=DocumentStatus.PENDING,
+    )
     return {
         "message": "Documents uploaded",
         "client_id": doc.client_id,
@@ -602,6 +650,12 @@ async def verify_client_documents(
     )
     await db.commit()
     await db.refresh(doc)
+    await _send_documents_notification_safe(
+        db=db,
+        client_id=client_id,
+        verification_status=doc.verification_status,
+        rejection_reason=doc.rejection_reason,
+    )
     return {
         "message": "Documents verification status updated",
         "client_id": client_id,

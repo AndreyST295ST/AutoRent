@@ -90,6 +90,202 @@
     const params = new URLSearchParams(window.location.search);
     const carId = params.get("carId");
     let car = null;
+    let currentUser = null;
+
+    function buildLoginRedirectUrl() {
+      const next = encodeURIComponent(
+        `${window.location.pathname}${window.location.search}${window.location.hash}`
+      );
+      return `/pages/Login.html?next=${next}`;
+    }
+
+    async function ensureAuthorizedUser() {
+      const localUser = window.Utils.getCurrentUser();
+      if (localUser) {
+        return localUser;
+      }
+
+      try {
+        if (window.authAPI?.me) {
+          const remoteUser = await window.authAPI.me();
+          window.Utils.setCurrentUser(remoteUser);
+          return remoteUser;
+        }
+      } catch (_) {
+        // ignore and redirect to login below
+      }
+
+      window.location.href = buildLoginRedirectUrl();
+      return null;
+    }
+
+    function resolveAssetUrl(url) {
+      if (!url) return null;
+      if (/^https?:\/\//i.test(url) || url.startsWith("blob:")) return url;
+      const normalized = url.startsWith("/") ? url : `/${url}`;
+      try {
+        const base = window.APP_CONFIG?.API_BASE_URL || "";
+        if (base.startsWith("http")) return `${new URL(base).origin}${normalized}`;
+      } catch (_) {}
+      return normalized;
+    }
+
+    function getCarPhotoUrls(carData) {
+      if (!Array.isArray(carData?.photo_urls) || !carData.photo_urls.length) {
+        return ["/assets/images/logo.svg"];
+      }
+      const urls = carData.photo_urls.map(resolveAssetUrl).filter(Boolean);
+      return urls.length ? urls : ["/assets/images/logo.svg"];
+    }
+
+    function getCarPhotosCount(carData) {
+      if (!Array.isArray(carData?.photo_urls)) return 0;
+      return carData.photo_urls.filter(Boolean).length;
+    }
+
+    function getBodyTypeLabel(value) {
+      const labels = {
+        sedan: "Седан",
+        hatchback: "Хэтчбек",
+        wagon: "Универсал",
+        suv: "Внедорожник",
+        crossover: "Кроссовер",
+        coupe: "Купе",
+        minivan: "Минивэн",
+      };
+      return labels[value] || value || "-";
+    }
+
+    function getDriveTypeLabel(value) {
+      const labels = {
+        fwd: "Передний",
+        rwd: "Задний",
+        awd: "Полный",
+      };
+      return labels[value] || value || "-";
+    }
+
+    function getFuelGradeLabel(value) {
+      const labels = {
+        ai92: "АИ-92",
+        ai95: "АИ-95",
+        ai98: "АИ-98",
+        diesel: "ДТ",
+        electric: "Электро",
+      };
+      return labels[value] || value || "-";
+    }
+
+    function renderBookingGallery(carData) {
+      const photos = getCarPhotoUrls(carData);
+      const slides = photos
+        .map(
+          (url, index) => `
+            <img
+              src="${url}"
+              alt="${carData.brand} ${carData.model} фото ${index + 1}"
+              class="car-card__slide ${index === 0 ? "is-active" : ""}"
+              loading="lazy"
+              data-index="${index}"
+            />
+          `
+        )
+        .join("");
+
+      const controls =
+        photos.length > 1
+          ? `
+            <button type="button" class="car-card__nav car-card__nav--prev" aria-label="Предыдущее фото">‹</button>
+            <button type="button" class="car-card__nav car-card__nav--next" aria-label="Следующее фото">›</button>
+            <div class="car-card__counter" data-carousel-counter>1 / ${photos.length}</div>
+            <div class="car-card__dots" aria-label="Переключение фото">
+              ${photos
+                .map(
+                  (_, index) => `
+                    <button
+                      type="button"
+                      class="car-card__dot ${index === 0 ? "is-active" : ""}"
+                      data-index="${index}"
+                      aria-label="Фото ${index + 1}"
+                    ></button>
+                  `
+                )
+                .join("")}
+            </div>
+          `
+          : "";
+
+      return `
+        <div class="booking-car__gallery car-card__image car-card__image--carousel" data-booking-carousel data-index="0">
+          ${slides}
+          ${controls}
+        </div>
+      `;
+    }
+
+    function setBookingCarouselIndex(carousel, index) {
+      const slides = Array.from(carousel.querySelectorAll(".car-card__slide"));
+      if (!slides.length) return;
+      const total = slides.length;
+      const safeIndex = ((index % total) + total) % total;
+
+      slides.forEach((slide, slideIndex) => {
+        slide.classList.toggle("is-active", slideIndex === safeIndex);
+      });
+      carousel.querySelectorAll(".car-card__dot").forEach((dot, dotIndex) => {
+        dot.classList.toggle("is-active", dotIndex === safeIndex);
+      });
+
+      const counter = carousel.querySelector("[data-carousel-counter]");
+      if (counter) counter.textContent = `${safeIndex + 1} / ${total}`;
+      carousel.dataset.index = String(safeIndex);
+    }
+
+    function initBookingCarousels(root = document) {
+      root.querySelectorAll("[data-booking-carousel]").forEach((carousel) => {
+        if (carousel.dataset.bound === "1") return;
+        carousel.dataset.bound = "1";
+
+        const slidesCount = carousel.querySelectorAll(".car-card__slide").length;
+        if (slidesCount <= 1) return;
+
+        const prev = carousel.querySelector(".car-card__nav--prev");
+        const next = carousel.querySelector(".car-card__nav--next");
+
+        prev?.addEventListener("click", () => {
+          const current = Number(carousel.dataset.index || 0);
+          setBookingCarouselIndex(carousel, current - 1);
+        });
+        next?.addEventListener("click", () => {
+          const current = Number(carousel.dataset.index || 0);
+          setBookingCarouselIndex(carousel, current + 1);
+        });
+        carousel.querySelectorAll(".car-card__dot").forEach((dot) => {
+          dot.addEventListener("click", () => {
+            setBookingCarouselIndex(carousel, Number(dot.dataset.index || 0));
+          });
+        });
+
+        let touchStartX = null;
+        carousel.addEventListener(
+          "touchstart",
+          (event) => {
+            touchStartX = event.changedTouches?.[0]?.clientX ?? null;
+          },
+          { passive: true }
+        );
+        carousel.addEventListener("touchend", (event) => {
+          if (touchStartX === null) return;
+          const touchEndX = event.changedTouches?.[0]?.clientX ?? null;
+          if (touchEndX === null) return;
+          const deltaX = touchEndX - touchStartX;
+          if (Math.abs(deltaX) < 30) return;
+          const current = Number(carousel.dataset.index || 0);
+          if (deltaX < 0) setBookingCarouselIndex(carousel, current + 1);
+          else setBookingCarouselIndex(carousel, current - 1);
+        });
+      });
+    }
 
     function calculateDays(startDate, endDate) {
       const start = new Date(startDate);
@@ -126,16 +322,35 @@
       try {
         car = await window.carsAPI.getById(carId);
         document.getElementById("carInfo").innerHTML = `
-          <h4>${car.brand} ${car.model}</h4>
-          <p>${car.year || ""} | ${window.Utils.getTransmissionLabel(car.transmission)} | ${window.Utils.getFuelLabel(car.fuel_type)}</p>
-          <p class="price__value">${window.Utils.formatCurrency(car.price_per_day)} / сутки</p>
+          <div class="booking-car">
+            ${renderBookingGallery(car)}
+            <div class="booking-car__meta">
+              <h4>${car.brand} ${car.model}</h4>
+              <p>${car.year || "-"} | ${window.Utils.getTransmissionLabel(car.transmission)} | ${window.Utils.getFuelLabel(car.fuel_type)}</p>
+              <div class="booking-car__spec-grid">
+                <span>Кузов: ${getBodyTypeLabel(car.body_type)}</span>
+                <span>Привод: ${getDriveTypeLabel(car.drive_type)}</span>
+                <span>Марка топлива: ${getFuelGradeLabel(car.fuel_grade)}</span>
+                <span>Двери: ${car.doors || "-"}</span>
+                <span>Мест: ${car.seats || "-"}</span>
+              </div>
+              <p>Фото: ${getCarPhotosCount(car)}</p>
+              <p class="price__value">${window.Utils.formatCurrency(car.price_per_day)} / сутки</p>
+            </div>
+          </div>
         `;
+        initBookingCarousels(document.getElementById("carInfo"));
       } catch (error) {
         document.getElementById("carInfo").innerHTML = "<p class='error'>Ошибка загрузки автомобиля</p>";
       }
     }
 
     document.getElementById("submitBtn").addEventListener("click", async () => {
+      if (!currentUser) {
+        window.location.href = buildLoginRedirectUrl();
+        return;
+      }
+
       const startDate = document.getElementById("startDate").value;
       const endDate = document.getElementById("endDate").value;
       const submitBtn = document.getElementById("submitBtn");
@@ -175,8 +390,12 @@
       cb.addEventListener("change", calculateTotal);
     });
 
-    loadCarInfo().then(calculateTotal);
+    (async () => {
+      currentUser = await ensureAuthorizedUser();
+      if (!currentUser) return;
+      await loadCarInfo();
+      calculateTotal();
+    })();
   </script>
 </body>
 </html>
-

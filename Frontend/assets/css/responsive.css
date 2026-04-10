@@ -138,6 +138,14 @@
   .hero__subtitle {
     font-size: var(--font-size-lg);
   }
+
+  .hero__actions {
+    flex-direction: column;
+  }
+
+  .hero__actions .btn {
+    width: 100%;
+  }
   
   .search-bar {
     flex-direction: column;
@@ -160,6 +168,18 @@
     position: static;
     order: -1;
   }
+
+  .booking-car {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-car__gallery {
+    height: 240px;
+  }
+
+  .booking-car__spec-grid {
+    grid-template-columns: 1fr;
+  }
   
   .catalog__layout {
     grid-template-columns: 1fr;
@@ -167,6 +187,23 @@
   
   .filters {
     margin-bottom: var(--space-6);
+  }
+
+  .filters__summary {
+    padding: var(--space-4);
+  }
+
+  .filters__summary-hint {
+    display: none;
+  }
+
+  .filters__content {
+    padding: var(--space-4);
+    grid-template-columns: 1fr;
+  }
+
+  .filters__actions .btn {
+    width: 100%;
   }
   
   .profile__layout {
@@ -220,6 +257,14 @@
     padding: var(--space-4);
   }
 
+  .admin-gallery__stage {
+    min-height: 250px;
+  }
+
+  .admin-gallery__meta .btn {
+    width: 100%;
+  }
+
   .auth-container {
     padding: var(--space-5);
   }
@@ -229,6 +274,10 @@
   }
   
   .benefits__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .discounts__grid {
     grid-template-columns: 1fr;
   }
   

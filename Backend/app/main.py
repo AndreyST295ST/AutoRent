@@ -74,6 +74,21 @@ async def startup():
                     text("ALTER TABLE cars ADD COLUMN photo_urls JSON NOT NULL DEFAULT '[]'")
                 )
 
+        car_extra_columns: dict[str, str] = {
+            "fuel_grade": "VARCHAR(20)",
+            "body_type": "VARCHAR(20)",
+            "drive_type": "VARCHAR(20)",
+            "doors": "INTEGER",
+        }
+        for column_name, column_type in car_extra_columns.items():
+            has_column = await conn.run_sync(
+                lambda sync_conn, name=column_name: any(
+                    column["name"] == name for column in inspect(sync_conn).get_columns("cars")
+                )
+            )
+            if not has_column:
+                await conn.execute(text(f"ALTER TABLE cars ADD COLUMN {column_name} {column_type}"))
+
         has_passport_scan_urls = await conn.run_sync(
             lambda sync_conn: any(
                 column["name"] == "passport_scan_urls"

@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_employee_or_admin_user
@@ -57,9 +57,34 @@ async def _save_car_photo(file: UploadFile) -> str:
 
 
 @router.get("/", response_model=list[CarResponse])
-async def get_cars(db: AsyncSession = Depends(get_db)):
+async def get_cars(
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
+    min_price: float | None = Query(default=None, ge=0),
+    max_price: float | None = Query(default=None, ge=0),
+    transmission: str | None = Query(default=None),
+    fuel_type: str | None = Query(default=None),
+    db: AsyncSession = Depends(get_db),
+):
+    if (start_date and not end_date) or (end_date and not start_date):
+        raise HTTPException(
+            status_code=400,
+            detail="Both start_date and end_date are required for availability filter",
+        )
+    if start_date and end_date and end_date <= start_date:
+        raise HTTPException(status_code=400, detail="end_date must be later than start_date")
+    if min_price is not None and max_price is not None and min_price > max_price:
+        raise HTTPException(status_code=400, detail="min_price cannot be greater than max_price")
+
     service = CarService(db)
-    return await service.get_all_cars()
+    return await service.get_all_cars(
+        start_date=start_date,
+        end_date=end_date,
+        min_price=min_price,
+        max_price=max_price,
+        transmission=transmission,
+        fuel_type=fuel_type,
+    )
 
 
 @router.get("/available", response_model=list[CarResponse])

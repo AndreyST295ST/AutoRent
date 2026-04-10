@@ -45,12 +45,12 @@
     "@context": "https://schema.org",
     "@type": "CarRentalBusiness",
     "name": "AutoRent",
-    "description": "Сервис проката автомобилей с доставкой и полным сервисом",
+    "description": "Сервис проката автомобилей",
     "url": "https://autorent.ru",
     "logo": "https://autorent.ru/assets/images/logo.png",
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": "+7-999-123-45-67",
+      "telephone": "+7-950-950-47-70",
       "contactType": "customer service",
       "availableLanguage": "Russian"
     },
@@ -137,55 +137,35 @@
         <p class="hero__subtitle">
           Более 50 автомобилей в наличии. Бронируйте онлайн за 2 минуты.
         </p>
-        
-        <!-- Quick Search Form -->
-        <div class="search-bar" role="search" aria-label="Быстрый поиск автомобилей">
-          <div class="search-bar__group">
-            <label for="searchStart" class="visually-hidden">Дата начала аренды</label>
-            <input 
-              type="date" 
-              id="searchStart" 
-              class="input" 
-              aria-required="true"
-              min=""
-            />
-            <span class="search-bar__label">📅 Дата начала</span>
-          </div>
-          
-          <div class="search-bar__group">
-            <label for="searchEnd" class="visually-hidden">Дата окончания аренды</label>
-            <input 
-              type="date" 
-              id="searchEnd" 
-              class="input" 
-              aria-required="true"
-              min=""
-            />
-            <span class="search-bar__label">📅 Дата окончания</span>
-          </div>
-          
-          <div class="search-bar__group">
-            <label for="searchBrand" class="visually-hidden">Марка автомобиля</label>
-            <select id="searchBrand" class="input" aria-label="Выберите марку автомобиля">
-              <option value="">Все марки</option>
-              <option value="Toyota">Toyota</option>
-              <option value="BMW">BMW</option>
-              <option value="Mercedes">Mercedes</option>
-              <option value="Hyundai">Hyundai</option>
-              <option value="Kia">Kia</option>
-              <option value="Volkswagen">Volkswagen</option>
-            </select>
-            <span class="search-bar__label">🚙 Марка</span>
-          </div>
-          
-          <button 
-            class="btn btn--primary btn--lg" 
-            id="searchBtn" 
-            type="button"
-            aria-label="Поиск автомобилей"
-          >
-            🔍 Найти
-          </button>
+        <div class="hero__actions">
+          <a href="/pages/Catalog.html" class="btn btn--primary btn--lg">Перейти в каталог</a>
+          <a href="/pages/Register.html" class="btn btn--outline btn--lg">Получить скидку</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Discounts Section -->
+    <section class="discounts" aria-labelledby="discounts-title">
+      <div class="container">
+        <div class="cars__header">
+          <h2 id="discounts-title">Акции и скидки</h2>
+        </div>
+        <div class="discounts__grid">
+          <article class="discount-card">
+            <span class="discount-card__badge">-10%</span>
+            <h3>Первая аренда</h3>
+            <p>Для новых клиентов после регистрации. Скидка применяется автоматически.</p>
+          </article>
+          <article class="discount-card">
+            <span class="discount-card__badge">-15%</span>
+            <h3>От 7 дней</h3>
+            <p>Длительная аренда с повышенной выгодой на весь период бронирования.</p>
+          </article>
+          <article class="discount-card">
+            <span class="discount-card__badge">-20%</span>
+            <h3>Корпоративным клиентам</h3>
+            <p>Специальные условия для компаний и постоянных партнёров.</p>
+          </article>
         </div>
       </div>
     </section>
@@ -370,31 +350,6 @@
     // Set current year in footer
     document.getElementById('currentYear').textContent = new Date().getFullYear();
     
-    // Set minimum date for search inputs
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('searchStart').min = today;
-    document.getElementById('searchEnd').min = today;
-    
-    // Search functionality
-    document.getElementById('searchBtn')?.addEventListener('click', () => {
-      const startDate = document.getElementById('searchStart').value;
-      const endDate = document.getElementById('searchEnd').value;
-      const brand = document.getElementById('searchBrand').value;
-      
-      if (!startDate || !endDate) {
-        showAlert('warning', 'Выберите даты аренды', 'Ошибка поиска');
-        return;
-      }
-      
-      // Redirect to catalog with filters
-      const params = new URLSearchParams({
-        start: startDate,
-        end: endDate,
-        brand: brand
-      });
-      window.location.href = `/pages/Catalog.html?${params}`;
-    });
-    
     function resolveAssetUrl(url) {
       if (!url) return null;
       if (/^https?:\/\//i.test(url) || url.startsWith('blob:')) return url;
@@ -413,24 +368,130 @@
       return car.photo_urls.map(resolveAssetUrl).filter(Boolean);
     }
 
-    function getCarImageUrl(car) {
-      return getCarPhotoUrls(car)[0];
+    function getCarPhotosCount(car) {
+      if (!Array.isArray(car?.photo_urls)) return 0;
+      return car.photo_urls.filter(Boolean).length;
     }
 
-    function renderCarThumbnails(car) {
+    function renderCarGallery(car) {
       const photos = getCarPhotoUrls(car);
-      if (photos.length <= 1) return '';
+      const slides = photos
+        .map(
+          (url, index) => `
+            <img
+              src="${url}"
+              alt="${car.brand} ${car.model} фото ${index + 1}"
+              class="car-card__slide ${index === 0 ? 'is-active' : ''}"
+              loading="lazy"
+              data-index="${index}"
+            />
+          `
+        )
+        .join('');
+
+      if (photos.length <= 1) {
+        return `
+          <div class="car-card__image car-card__image--carousel" data-carousel data-index="0">
+            ${slides}
+            <span class="car-card__badge car-card__badge--${car.status}">
+              ${window.Utils.getCarStatusLabel(car.status)}
+            </span>
+          </div>
+        `;
+      }
+
       return `
-        <div class="car-card__thumbs" aria-label="Дополнительные фото ${car.brand} ${car.model}">
-          ${photos
-            .slice(0, 4)
-            .map(
-              (url, index) =>
-                `<img src="${url}" alt="${car.brand} ${car.model} фото ${index + 1}" loading="lazy" />`
-            )
-            .join('')}
+        <div class="car-card__image car-card__image--carousel" data-carousel data-index="0">
+          ${slides}
+          <button type="button" class="car-card__nav car-card__nav--prev" aria-label="Предыдущее фото">‹</button>
+          <button type="button" class="car-card__nav car-card__nav--next" aria-label="Следующее фото">›</button>
+          <div class="car-card__counter" data-carousel-counter>1 / ${photos.length}</div>
+          <div class="car-card__dots" aria-label="Переключение фото">
+            ${photos
+              .map(
+                (_, index) => `
+                  <button
+                    type="button"
+                    class="car-card__dot ${index === 0 ? 'is-active' : ''}"
+                    data-index="${index}"
+                    aria-label="Фото ${index + 1}"
+                  ></button>
+                `
+              )
+              .join('')}
+          </div>
+          <span class="car-card__badge car-card__badge--${car.status}">
+            ${window.Utils.getCarStatusLabel(car.status)}
+          </span>
         </div>
       `;
+    }
+
+    function setCarouselIndex(carousel, index) {
+      const slides = Array.from(carousel.querySelectorAll('.car-card__slide'));
+      if (!slides.length) return;
+      const total = slides.length;
+      const safeIndex = ((index % total) + total) % total;
+
+      slides.forEach((slide, slideIndex) => {
+        slide.classList.toggle('is-active', slideIndex === safeIndex);
+      });
+
+      carousel.querySelectorAll('.car-card__dot').forEach((dot, dotIndex) => {
+        dot.classList.toggle('is-active', dotIndex === safeIndex);
+      });
+
+      const counter = carousel.querySelector('[data-carousel-counter]');
+      if (counter) counter.textContent = `${safeIndex + 1} / ${total}`;
+      carousel.dataset.index = String(safeIndex);
+    }
+
+    function initCarousels(root = document) {
+      root.querySelectorAll('[data-carousel]').forEach((carousel) => {
+        if (carousel.dataset.bound === '1') return;
+        carousel.dataset.bound = '1';
+
+        const slidesCount = carousel.querySelectorAll('.car-card__slide').length;
+        if (slidesCount <= 1) return;
+
+        const prev = carousel.querySelector('.car-card__nav--prev');
+        const next = carousel.querySelector('.car-card__nav--next');
+
+        prev?.addEventListener('click', () => {
+          const current = Number(carousel.dataset.index || 0);
+          setCarouselIndex(carousel, current - 1);
+        });
+
+        next?.addEventListener('click', () => {
+          const current = Number(carousel.dataset.index || 0);
+          setCarouselIndex(carousel, current + 1);
+        });
+
+        carousel.querySelectorAll('.car-card__dot').forEach((dot) => {
+          dot.addEventListener('click', () => {
+            setCarouselIndex(carousel, Number(dot.dataset.index || 0));
+          });
+        });
+
+        let touchStartX = null;
+        carousel.addEventListener(
+          'touchstart',
+          (event) => {
+            touchStartX = event.changedTouches?.[0]?.clientX ?? null;
+          },
+          { passive: true }
+        );
+        carousel.addEventListener('touchend', (event) => {
+          if (touchStartX === null) return;
+          const touchEndX = event.changedTouches?.[0]?.clientX ?? null;
+          if (touchEndX === null) return;
+          const deltaX = touchEndX - touchStartX;
+          if (Math.abs(deltaX) < 30) return;
+          const current = Number(carousel.dataset.index || 0);
+          if (deltaX < 0) setCarouselIndex(carousel, current + 1);
+          else setCarouselIndex(carousel, current - 1);
+        });
+      });
     }
 
     // Load featured cars
@@ -456,22 +517,14 @@
         
         container.innerHTML = cars.map(car => `
           <article class="car-card" data-car-id="${car.id}">
-            <div class="car-card__image">
-              <img src="${getCarImageUrl(car)}" 
-                   alt="${car.brand} ${car.model}" 
-                   loading="lazy" />
-              <span class="car-card__badge car-card__badge--${car.status}">
-                ${window.Utils.getCarStatusLabel(car.status)}
-              </span>
-            </div>
-            ${renderCarThumbnails(car)}
+            ${renderCarGallery(car)}
             <div class="car-card__body">
               <h3 class="car-card__title">${car.brand} ${car.model}</h3>
               <div class="car-card__specs">
                 <span class="spec">📅 ${car.year || '-'}</span>
                 <span class="spec">⚙️ ${window.Utils.getTransmissionLabel(car.transmission)}</span>
                 <span class="spec">⛽ ${window.Utils.getFuelLabel(car.fuel_type)}</span>
-                <span class="spec">📷 ${Array.isArray(car.photo_urls) ? car.photo_urls.length : 0} фото</span>
+                <span class="spec">📷 ${getCarPhotosCount(car)} фото</span>
               </div>
               <div class="car-card__footer">
                 <div class="car-card__price">
@@ -485,6 +538,8 @@
             </div>
           </article>
         `).join('');
+
+        initCarousels(container);
         
         // Attach book events
         container.querySelectorAll('[data-action="book"]').forEach(btn => {

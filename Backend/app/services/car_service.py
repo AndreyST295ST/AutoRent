@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Select, and_, not_, select
+from sqlalchemy import Select, and_, func, not_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.booking import Booking, BookingStatus
@@ -18,8 +18,51 @@ class CarService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_all_cars(self) -> list[Car]:
-        result = await self.db.execute(select(Car).order_by(Car.created_at.desc()))
+    async def get_all_cars(
+        self,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+        min_price: float | None = None,
+        max_price: float | None = None,
+        transmission: str | None = None,
+        fuel_type: str | None = None,
+    ) -> list[Car]:
+        query: Select = select(Car)
+
+        filters = []
+        if min_price is not None:
+            filters.append(Car.price_per_day >= min_price)
+        if max_price is not None:
+            filters.append(Car.price_per_day <= max_price)
+        if transmission:
+            filters.append(func.lower(Car.transmission) == transmission.strip().lower())
+        if fuel_type:
+            filters.append(func.lower(Car.fuel_type) == fuel_type.strip().lower())
+
+        if start_date and end_date:
+            overlapping = (
+                select(Booking.car_id)
+                .where(
+                    and_(
+                        Booking.status.in_(ACTIVE_BOOKING_STATUSES),
+                        Booking.start_date < end_date,
+                        Booking.end_date > start_date,
+                    )
+                )
+                .subquery()
+            )
+            filters.extend(
+                [
+                    Car.status == CarStatus.FREE,
+                    not_(Car.id.in_(select(overlapping.c.car_id))),
+                ]
+            )
+
+        if filters:
+            query = query.where(and_(*filters))
+
+        query = query.order_by(Car.created_at.desc())
+        result = await self.db.execute(query)
         return list(result.scalars().all())
 
     async def get_car(self, car_id: int) -> Car | None:

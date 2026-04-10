@@ -26,17 +26,55 @@
     <div class="container">
       <h1 class="page-title">Каталог автомобилей</h1>
 
-      <div class="filters">
-        <div class="form__group">
-          <label for="startDate">Дата начала</label>
-          <input type="date" id="startDate" class="input" />
+      <details class="filters filters--dropdown" id="catalogFilters" open>
+        <summary class="filters__summary">
+          <span>Фильтры</span>
+          <span class="filters__summary-hint">Цена, КПП, топливо, даты</span>
+        </summary>
+        <div class="filters__content">
+          <div class="form__group">
+            <label for="startDate">Дата начала</label>
+            <input type="date" id="startDate" class="input" />
+          </div>
+          <div class="form__group">
+            <label for="endDate">Дата окончания</label>
+            <input type="date" id="endDate" class="input" />
+          </div>
+          <div class="form__group">
+            <label for="minPrice">Цена от (₽/сутки)</label>
+            <input type="number" id="minPrice" class="input" min="0" step="500" placeholder="Напр. 2000" />
+          </div>
+          <div class="form__group">
+            <label for="maxPrice">Цена до (₽/сутки)</label>
+            <input type="number" id="maxPrice" class="input" min="0" step="500" placeholder="Напр. 8000" />
+          </div>
+          <div class="form__group">
+            <label for="transmission">КПП</label>
+            <select id="transmission" class="input">
+              <option value="">Любая</option>
+              <option value="automatic">Автомат</option>
+              <option value="manual">Механика</option>
+              <option value="cvt">Вариатор</option>
+              <option value="robot">Робот</option>
+            </select>
+          </div>
+          <div class="form__group">
+            <label for="fuelType">Топливо</label>
+            <select id="fuelType" class="input">
+              <option value="">Любое</option>
+              <option value="petrol">Бензин</option>
+              <option value="diesel">Дизель</option>
+              <option value="electric">Электро</option>
+              <option value="hybrid">Гибрид</option>
+              <option value="gas">Газ</option>
+            </select>
+          </div>
+          <div class="filters__actions">
+            <button class="btn btn--primary" id="filterBtn" type="button">Применить</button>
+            <button class="btn btn--outline" id="clearFilterBtn" type="button">Сбросить</button>
+          </div>
         </div>
-        <div class="form__group">
-          <label for="endDate">Дата окончания</label>
-          <input type="date" id="endDate" class="input" />
-        </div>
-        <button class="btn btn--primary" id="filterBtn">Применить</button>
-      </div>
+      </details>
 
       <div class="cars__grid" id="carsGrid">
         <div class="loader">Загрузка...</div>
@@ -70,11 +108,154 @@
       return normalized;
     }
 
-    function getCarImageUrl(car) {
-      if (Array.isArray(car.photo_urls) && car.photo_urls.length) {
-        return resolveAssetUrl(car.photo_urls[0]);
+    function getCarPhotoUrls(car) {
+      if (!Array.isArray(car?.photo_urls) || !car.photo_urls.length) {
+        return ["/assets/images/logo.svg"];
       }
-      return "/assets/images/logo.svg";
+      const urls = car.photo_urls.map(resolveAssetUrl).filter(Boolean);
+      return urls.length ? urls : ["/assets/images/logo.svg"];
+    }
+
+    function renderCarGallery(car) {
+      const photos = getCarPhotoUrls(car);
+      const slides = photos
+        .map(
+          (url, index) => `
+            <img
+              src="${url}"
+              alt="${car.brand} ${car.model} фото ${index + 1}"
+              class="car-card__slide ${index === 0 ? "is-active" : ""}"
+              loading="lazy"
+              data-index="${index}"
+            />
+          `
+        )
+        .join("");
+
+      const hasMultiple = photos.length > 1;
+      const controls = hasMultiple
+        ? `
+          <button type="button" class="car-card__nav car-card__nav--prev" aria-label="Предыдущее фото">‹</button>
+          <button type="button" class="car-card__nav car-card__nav--next" aria-label="Следующее фото">›</button>
+          <div class="car-card__counter" data-carousel-counter>1 / ${photos.length}</div>
+          <div class="car-card__dots" aria-label="Переключение фото">
+            ${photos
+              .map(
+                (_, index) => `
+                  <button
+                    type="button"
+                    class="car-card__dot ${index === 0 ? "is-active" : ""}"
+                    data-index="${index}"
+                    aria-label="Фото ${index + 1}"
+                  ></button>
+                `
+              )
+              .join("")}
+          </div>
+        `
+        : "";
+
+      return `
+        <div class="car-card__image car-card__image--carousel" data-carousel data-index="0">
+          ${slides}
+          ${controls}
+          <span class="car-card__badge car-card__badge--${car.status}">${getStatusLabel(car.status)}</span>
+        </div>
+      `;
+    }
+
+    function setCarouselIndex(carousel, index) {
+      const slides = Array.from(carousel.querySelectorAll(".car-card__slide"));
+      if (!slides.length) return;
+
+      const total = slides.length;
+      const safeIndex = ((index % total) + total) % total;
+
+      slides.forEach((slide, slideIndex) => {
+        slide.classList.toggle("is-active", slideIndex === safeIndex);
+      });
+
+      carousel.querySelectorAll(".car-card__dot").forEach((dot, dotIndex) => {
+        dot.classList.toggle("is-active", dotIndex === safeIndex);
+      });
+
+      const counter = carousel.querySelector("[data-carousel-counter]");
+      if (counter) {
+        counter.textContent = `${safeIndex + 1} / ${total}`;
+      }
+
+      carousel.dataset.index = String(safeIndex);
+    }
+
+    function initCarousels(root = document) {
+      root.querySelectorAll("[data-carousel]").forEach((carousel) => {
+        if (carousel.dataset.bound === "1") return;
+        carousel.dataset.bound = "1";
+
+        const slidesCount = carousel.querySelectorAll(".car-card__slide").length;
+        if (slidesCount <= 1) return;
+
+        const prev = carousel.querySelector(".car-card__nav--prev");
+        const next = carousel.querySelector(".car-card__nav--next");
+
+        prev?.addEventListener("click", () => {
+          const current = Number(carousel.dataset.index || 0);
+          setCarouselIndex(carousel, current - 1);
+        });
+
+        next?.addEventListener("click", () => {
+          const current = Number(carousel.dataset.index || 0);
+          setCarouselIndex(carousel, current + 1);
+        });
+
+        carousel.querySelectorAll(".car-card__dot").forEach((dot) => {
+          dot.addEventListener("click", () => {
+            setCarouselIndex(carousel, Number(dot.dataset.index || 0));
+          });
+        });
+
+        let touchStartX = null;
+        carousel.addEventListener(
+          "touchstart",
+          (event) => {
+            touchStartX = event.changedTouches?.[0]?.clientX ?? null;
+          },
+          { passive: true }
+        );
+        carousel.addEventListener("touchend", (event) => {
+          if (touchStartX === null) return;
+          const touchEndX = event.changedTouches?.[0]?.clientX ?? null;
+          if (touchEndX === null) return;
+
+          const deltaX = touchEndX - touchStartX;
+          if (Math.abs(deltaX) < 30) return;
+
+          const current = Number(carousel.dataset.index || 0);
+          if (deltaX < 0) {
+            setCarouselIndex(carousel, current + 1);
+          } else {
+            setCarouselIndex(carousel, current - 1);
+          }
+        });
+      });
+    }
+
+    function collectFilters() {
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const minPrice = document.getElementById("minPrice").value;
+      const maxPrice = document.getElementById("maxPrice").value;
+      const transmission = document.getElementById("transmission").value;
+      const fuelType = document.getElementById("fuelType").value;
+
+      const filters = {};
+      if (startDate) filters.start_date = startDate;
+      if (endDate) filters.end_date = endDate;
+      if (minPrice !== "") filters.min_price = Number(minPrice);
+      if (maxPrice !== "") filters.max_price = Number(maxPrice);
+      if (transmission) filters.transmission = transmission;
+      if (fuelType) filters.fuel_type = fuelType;
+      return filters;
     }
 
     async function loadCars(filters = {}) {
@@ -97,17 +278,14 @@
           .map(
             (car) => `
           <article class="car-card" data-car-id="${car.id}">
-            <div class="car-card__image">
-              <img src="${getCarImageUrl(car)}" alt="${car.brand} ${car.model}" loading="lazy" />
-              <span class="car-card__badge car-card__badge--${car.status}">${getStatusLabel(car.status)}</span>
-            </div>
+            ${renderCarGallery(car)}
             <div class="car-card__body">
               <h3 class="car-card__title">${car.brand} ${car.model}</h3>
               <div class="car-card__specs">
                 <span>Год: ${car.year || "-"}</span>
                 <span>КПП: ${window.Utils.getTransmissionLabel(car.transmission)}</span>
                 <span>Топливо: ${window.Utils.getFuelLabel(car.fuel_type)}</span>
-                <span>Фото: ${Array.isArray(car.photo_urls) ? car.photo_urls.length : 0}</span>
+                <span>Фото: ${getCarPhotoUrls(car).length}</span>
               </div>
               <div class="car-card__footer">
                 <div class="car-card__price">${window.Utils.formatCurrency(car.price_per_day)} / сутки</div>
@@ -120,6 +298,7 @@
         `
           )
           .join("");
+        initCarousels(grid);
       } catch (error) {
         grid.innerHTML = `
           <div class="empty-state">
@@ -130,10 +309,21 @@
       }
     }
 
-    document.getElementById("filterBtn").addEventListener("click", () => {
-      const startDate = document.getElementById("startDate").value;
-      const endDate = document.getElementById("endDate").value;
-      loadCars({ start_date: startDate, end_date: endDate });
+    function applyFilters() {
+      loadCars(collectFilters());
+      document.getElementById("catalogFilters")?.removeAttribute("open");
+    }
+
+    document.getElementById("filterBtn").addEventListener("click", applyFilters);
+    document.getElementById("clearFilterBtn").addEventListener("click", () => {
+      document.getElementById("startDate").value = "";
+      document.getElementById("endDate").value = "";
+      document.getElementById("minPrice").value = "";
+      document.getElementById("maxPrice").value = "";
+      document.getElementById("transmission").value = "";
+      document.getElementById("fuelType").value = "";
+      loadCars({});
+      document.getElementById("catalogFilters")?.removeAttribute("open");
     });
 
     loadCars();

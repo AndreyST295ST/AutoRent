@@ -91,6 +91,30 @@
     client: "Клиент",
   };
 
+  const BODY_TYPE_LABELS = {
+    sedan: "Седан",
+    hatchback: "Хэтчбек",
+    wagon: "Универсал",
+    suv: "Внедорожник",
+    crossover: "Кроссовер",
+    coupe: "Купе",
+    minivan: "Минивэн",
+  };
+
+  const DRIVE_TYPE_LABELS = {
+    fwd: "Передний",
+    rwd: "Задний",
+    awd: "Полный",
+  };
+
+  const FUEL_GRADE_LABELS = {
+    ai92: "АИ-92",
+    ai95: "АИ-95",
+    ai98: "АИ-98",
+    diesel: "ДТ",
+    electric: "Электро",
+  };
+
   function statusBadge(status) {
     const label = STATUS_LABELS[status] || status || "-";
     return `<span class="${STATUS_BADGES[status] || "badge"}">${label}</span>`;
@@ -244,16 +268,26 @@
     els.carsTable.innerHTML = rows
       .map((c) => {
         const primaryPhoto = getPrimaryCarPhoto(c);
-        const photosCount = Array.isArray(c.photo_urls) ? c.photo_urls.length : 0;
+        const photosCount = getCarPhotoUrls(c).length;
+        const photoControl =
+          photosCount === 0
+            ? "Нет"
+            : photosCount === 1
+              ? `<a href="${primaryPhoto}" target="_blank" rel="noopener noreferrer">Открыть</a>`
+              : `<button class="btn btn--outline btn--sm" data-action="car-open-photos" data-id="${c.id}" type="button">Смотреть (${photosCount})</button>`;
         return `<tr>
         <td>${c.id}</td>
-        <td>${c.brand} ${c.model}</td>
+        <td>
+          <strong>${c.brand} ${c.model}</strong>
+          <div class="hint">Двери: ${c.doors || "-"} | Кузов: ${BODY_TYPE_LABELS[c.body_type] || c.body_type || "-"}</div>
+          <div class="hint">Привод: ${DRIVE_TYPE_LABELS[c.drive_type] || c.drive_type || "-"} | Марка топлива: ${FUEL_GRADE_LABELS[c.fuel_grade] || c.fuel_grade || "-"}</div>
+        </td>
         <td>${c.license_plate || "-"}</td>
         <td>${c.year || "-"}</td>
         <td>${window.Utils.formatCurrency(c.price_per_day)}</td>
         <td>${statusBadge(c.status)}</td>
         <td>
-          ${primaryPhoto ? `<a href="${primaryPhoto}" target="_blank" rel="noopener noreferrer">Открыть (${photosCount})</a>` : "Нет"}
+          ${photoControl}
         </td>
         <td style="display:flex; gap:.35rem; flex-wrap:wrap;">
           <button class="btn btn--outline btn--sm" data-action="edit-car" data-id="${c.id}">Редактировать</button>
@@ -383,8 +417,120 @@
   }
 
   function getPrimaryCarPhoto(car) {
-    if (!car || !Array.isArray(car.photo_urls) || !car.photo_urls.length) return null;
-    return resolveAssetUrl(car.photo_urls[0]);
+    const photos = getCarPhotoUrls(car);
+    return photos.length ? photos[0] : null;
+  }
+
+  function getCarPhotoUrls(car) {
+    if (!car || !Array.isArray(car.photo_urls) || !car.photo_urls.length) return [];
+    return car.photo_urls.map(resolveAssetUrl).filter(Boolean);
+  }
+
+  function initCarGallery(photoUrls = []) {
+    const gallery = els.clientDocsModalBody?.querySelector("[data-car-gallery]");
+    if (!gallery || !photoUrls.length) return;
+
+    const stageImage = gallery.querySelector("[data-gallery-main]");
+    const counter = gallery.querySelector("[data-gallery-counter]");
+    const openCurrent = gallery.querySelector("[data-gallery-open]");
+    const thumbs = Array.from(gallery.querySelectorAll("[data-gallery-index]"));
+    const prevBtn = gallery.querySelector("[data-gallery-nav='prev']");
+    const nextBtn = gallery.querySelector("[data-gallery-nav='next']");
+
+    let currentIndex = 0;
+
+    const update = (nextIndex) => {
+      const maxIndex = photoUrls.length - 1;
+      const safe = ((nextIndex % photoUrls.length) + photoUrls.length) % photoUrls.length;
+      currentIndex = safe;
+      if (stageImage) {
+        stageImage.src = photoUrls[safe];
+        stageImage.alt = `Фото автомобиля ${safe + 1}`;
+      }
+      if (counter) {
+        counter.textContent = `${safe + 1} / ${photoUrls.length}`;
+      }
+      if (openCurrent) {
+        openCurrent.href = photoUrls[safe];
+      }
+      thumbs.forEach((thumb, index) => {
+        thumb.classList.toggle("is-active", index === safe);
+      });
+      if (prevBtn) prevBtn.disabled = maxIndex <= 0;
+      if (nextBtn) nextBtn.disabled = maxIndex <= 0;
+    };
+
+    prevBtn?.addEventListener("click", () => update(currentIndex - 1));
+    nextBtn?.addEventListener("click", () => update(currentIndex + 1));
+    thumbs.forEach((thumb) => {
+      thumb.addEventListener("click", () => update(Number(thumb.dataset.galleryIndex || 0)));
+    });
+
+    let touchStartX = null;
+    gallery.addEventListener(
+      "touchstart",
+      (event) => {
+        touchStartX = event.changedTouches?.[0]?.clientX ?? null;
+      },
+      { passive: true }
+    );
+    gallery.addEventListener("touchend", (event) => {
+      if (touchStartX === null) return;
+      const touchEndX = event.changedTouches?.[0]?.clientX ?? null;
+      if (touchEndX === null) return;
+      const deltaX = touchEndX - touchStartX;
+      if (Math.abs(deltaX) < 30) return;
+      if (deltaX < 0) update(currentIndex + 1);
+      else update(currentIndex - 1);
+    });
+
+    update(0);
+  }
+
+  function openCarPhotosViewer(carId) {
+    const car = state.cars.find((item) => Number(item.id) === Number(carId));
+    if (!car) {
+      window.Utils.showNotification("warning", "Автомобиль не найден");
+      return;
+    }
+    const photoUrls = getCarPhotoUrls(car);
+    if (!photoUrls.length) {
+      window.Utils.showNotification("warning", "У автомобиля пока нет фотографий");
+      return;
+    }
+
+    const thumbsHtml = photoUrls
+      .map(
+        (url, index) => `
+          <button
+            type="button"
+            class="admin-gallery__thumb ${index === 0 ? "is-active" : ""}"
+            data-gallery-index="${index}"
+            aria-label="Фото ${index + 1}"
+          >
+            <img src="${url}" alt="${car.brand} ${car.model} миниатюра ${index + 1}" />
+          </button>
+        `
+      )
+      .join("");
+
+    openClientDocsModal(
+      `Фото: ${car.brand} ${car.model}`,
+      `<div class="admin-gallery" data-car-gallery>
+        <div class="admin-gallery__stage">
+          <button type="button" class="admin-gallery__nav admin-gallery__nav--prev" data-gallery-nav="prev" aria-label="Предыдущее фото">‹</button>
+          <img class="admin-gallery__image" data-gallery-main src="${photoUrls[0]}" alt="Фото автомобиля 1" />
+          <button type="button" class="admin-gallery__nav admin-gallery__nav--next" data-gallery-nav="next" aria-label="Следующее фото">›</button>
+        </div>
+        <div class="admin-gallery__meta">
+          <span class="admin-gallery__counter" data-gallery-counter>1 / ${photoUrls.length}</span>
+          <a class="btn btn--outline btn--sm" data-gallery-open href="${photoUrls[0]}" target="_blank" rel="noopener noreferrer">Открыть текущее</a>
+        </div>
+        <div class="admin-gallery__thumbs">${thumbsHtml}</div>
+      </div>`
+    );
+
+    initCarGallery(photoUrls);
   }
 
   function getDocumentUrls(doc, type) {
@@ -425,6 +571,10 @@
     $("carStatus").value = car?.status || "free";
     $("carTransmission").value = car?.transmission || "";
     $("carFuel").value = car?.fuel_type || "";
+    $("carFuelGrade").value = car?.fuel_grade || "";
+    $("carBodyType").value = car?.body_type || "";
+    $("carDriveType").value = car?.drive_type || "";
+    $("carDoors").value = car?.doors || "";
     $("carSeats").value = car?.seats || "";
     $("carDescription").value = car?.description || "";
     if (els.carPhotos) els.carPhotos.value = "";
@@ -564,6 +714,10 @@
       status: $("carStatus").value,
       transmission: $("carTransmission").value || null,
       fuel_type: $("carFuel").value || null,
+      fuel_grade: $("carFuelGrade").value || null,
+      body_type: $("carBodyType").value || null,
+      drive_type: $("carDriveType").value || null,
+      doors: Number($("carDoors").value || 0) || null,
       seats: Number($("carSeats").value || 0) || null,
       description: $("carDescription").value.trim(),
     };
@@ -605,6 +759,9 @@
       if (action === "toggle-car-status") {
         const car = state.cars.find((c) => Number(c.id) === id);
         await window.carsAPI.updateStatus(id, car?.status === "free" ? "maintenance" : "free");
+      }
+      if (action === "car-open-photos") {
+        return openCarPhotosViewer(id);
       }
       if (action === "delete-car") {
         if (!confirm(`Удалить автомобиль #${id}?`)) return;

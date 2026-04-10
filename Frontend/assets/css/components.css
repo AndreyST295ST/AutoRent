@@ -614,11 +614,28 @@
   overflow: hidden;
 }
 
+.car-card__image--carousel {
+  isolation: isolate;
+}
+
 .car-card__image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform var(--transition-slow);
+}
+
+.car-card__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-normal), transform var(--transition-slow);
+}
+
+.car-card__slide.is-active {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .car-card:hover .car-card__image img {
@@ -649,6 +666,71 @@
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
+  z-index: 4;
+}
+
+.car-card__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(17, 24, 39, 0.52);
+  color: var(--text-inverse);
+  font-size: var(--font-size-xl);
+  line-height: 1;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.car-card__nav:hover {
+  background: rgba(17, 24, 39, 0.74);
+}
+
+.car-card__nav--prev {
+  left: var(--space-3);
+}
+
+.car-card__nav--next {
+  right: var(--space-3);
+}
+
+.car-card__counter {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 3;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background: rgba(17, 24, 39, 0.6);
+  color: var(--text-inverse);
+  font-size: var(--font-size-xs);
+}
+
+.car-card__dots {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-3);
+  transform: translateX(-50%);
+  display: flex;
+  gap: var(--space-1);
+  z-index: 3;
+}
+
+.car-card__dot {
+  width: 8px;
+  height: 8px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 0;
+}
+
+.car-card__dot.is-active {
+  background: var(--text-inverse);
 }
 
 .car-card__body {

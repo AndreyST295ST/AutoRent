@@ -1,4 +1,8 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, Query, status
+﻿import logging
+from decimal import Decimal
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import (
@@ -6,17 +10,79 @@ from app.api.deps import (
     get_current_client,
     get_employee_or_admin_user,
 )
+from app.config import settings
 from app.database import get_db
 from app.services.booking_service import BookingService
+from app.services.email_service import EmailService
 from models.booking import BookingStatus
+from models.car import Car
 from models.user import Client, User, UserRole
 from schemas.booking import BookingCreate, BookingResponse, BookingStatusUpdate
 
 router = APIRouter()
+LOGGER = logging.getLogger(__name__)
+
+
+BOOKING_STATUS_LABELS: dict[BookingStatus, str] = {
+    BookingStatus.PENDING_REVIEW: "На рассмотрении",
+    BookingStatus.CONFIRMED: "Подтверждена",
+    BookingStatus.ACTIVE: "Активна",
+    BookingStatus.RETURNED: "Завершена",
+    BookingStatus.CANCELLED: "Отменена",
+    BookingStatus.REJECTED: "Отклонена",
+}
 
 
 def _is_employee_or_admin(user: User) -> bool:
     return user.role in {UserRole.EMPLOYEE, UserRole.ADMIN}
+
+
+async def _build_booking_email_context(db: AsyncSession, booking_id: int) -> dict | None:
+    service = BookingService(db)
+    booking = await service.get_booking(booking_id)
+    if not booking:
+        return None
+
+    client_result = await db.execute(select(Client).where(Client.id == booking.client_id))
+    client = client_result.scalar_one_or_none()
+    if not client:
+        return None
+
+    user_result = await db.execute(select(User).where(User.id == client.user_id))
+    user = user_result.scalar_one_or_none()
+    if not user:
+        return None
+
+    car = await db.get(Car, booking.car_id)
+    car_label = f"{car.brand} {car.model}" if car else f"Авто #{booking.car_id}"
+    start_date = booking.start_date.strftime("%d.%m.%Y")
+    end_date = booking.end_date.strftime("%d.%m.%Y")
+    total = Decimal(str(booking.total_price)) if booking.total_price is not None else Decimal("0")
+    total_price = f"{total:,.2f}".replace(",", " ")
+    status_label = BOOKING_STATUS_LABELS.get(booking.status, str(booking.status))
+    details_url = f"{settings.FRONTEND_URL.rstrip('/')}/pages/MyBookings.html"
+
+    return {
+        "recipient_email": user.email,
+        "first_name": user.first_name,
+        "booking_id": booking.id,
+        "status_label": status_label,
+        "car_label": car_label,
+        "start_date": start_date,
+        "end_date": end_date,
+        "total_price": total_price,
+        "details_url": details_url,
+    }
+
+
+async def _send_booking_notification_safe(db: AsyncSession, booking_id: int) -> None:
+    try:
+        context = await _build_booking_email_context(db, booking_id)
+        if not context:
+            return
+        await EmailService().send_booking_notification_email(**context)
+    except Exception as exc:
+        LOGGER.warning("Booking email notification failed for booking_id=%s: %s", booking_id, exc)
 
 
 @router.get("/", response_model=list[BookingResponse])
@@ -47,7 +113,9 @@ async def create_booking(
     service = BookingService(db)
     try:
         payload = booking_data.model_copy(update={"client_id": current_client.id})
-        return await service.create_booking(payload)
+        booking = await service.create_booking(payload)
+        await _send_booking_notification_safe(db, booking.id)
+        return booking
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -86,6 +154,7 @@ async def cancel_booking(
             raise HTTPException(status_code=403, detail="Access denied")
 
     booking = await service.cancel(booking_id)
+    await _send_booking_notification_safe(db, booking_id)
     return booking
 
 
@@ -99,6 +168,7 @@ async def confirm_booking(
     booking = await service.confirm(booking_id, employee_id=current_user.id)
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
+    await _send_booking_notification_safe(db, booking_id)
     return booking
 
 
@@ -112,6 +182,7 @@ async def reject_booking(
     booking = await service.reject(booking_id)
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
+    await _send_booking_notification_safe(db, booking_id)
     return booking
 
 
@@ -128,6 +199,7 @@ async def pickup_booking(
     booking = await service.pickup(booking_id, odometer=odometer, fuel=fuel)
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
+    await _send_booking_notification_safe(db, booking_id)
     return booking
 
 
@@ -150,6 +222,7 @@ async def return_booking(
     )
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
+    await _send_booking_notification_safe(db, booking_id)
     return booking
 
 
@@ -164,4 +237,3 @@ async def generate_documents(
     if not docs:
         raise HTTPException(status_code=404, detail="Booking not found")
     return docs
-

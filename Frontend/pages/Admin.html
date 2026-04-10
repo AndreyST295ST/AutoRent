@@ -278,6 +278,8 @@
               <option value="">-</option>
               <option value="automatic">Автомат</option>
               <option value="manual">Механика</option>
+              <option value="cvt">Вариатор</option>
+              <option value="robot">Робот</option>
             </select>
           </div>
           <div class="form__group">
@@ -289,6 +291,47 @@
               <option value="hybrid">Гибрид</option>
               <option value="electric">Электро</option>
             </select>
+          </div>
+        </div>
+        <div class="form__row">
+          <div class="form__group">
+            <label for="carFuelGrade">Марка топлива</label>
+            <select id="carFuelGrade" class="input">
+              <option value="">-</option>
+              <option value="ai92">АИ-92</option>
+              <option value="ai95">АИ-95</option>
+              <option value="ai98">АИ-98</option>
+              <option value="diesel">ДТ</option>
+              <option value="electric">Электро</option>
+            </select>
+          </div>
+          <div class="form__group">
+            <label for="carBodyType">Тип кузова</label>
+            <select id="carBodyType" class="input">
+              <option value="">-</option>
+              <option value="sedan">Седан</option>
+              <option value="hatchback">Хэтчбек</option>
+              <option value="wagon">Универсал</option>
+              <option value="suv">Внедорожник</option>
+              <option value="crossover">Кроссовер</option>
+              <option value="coupe">Купе</option>
+              <option value="minivan">Минивэн</option>
+            </select>
+          </div>
+        </div>
+        <div class="form__row">
+          <div class="form__group">
+            <label for="carDriveType">Привод</label>
+            <select id="carDriveType" class="input">
+              <option value="">-</option>
+              <option value="fwd">Передний</option>
+              <option value="rwd">Задний</option>
+              <option value="awd">Полный</option>
+            </select>
+          </div>
+          <div class="form__group">
+            <label for="carDoors">Количество дверей</label>
+            <input type="number" id="carDoors" class="input" min="2" max="6" />
           </div>
         </div>
         <div class="form__row">

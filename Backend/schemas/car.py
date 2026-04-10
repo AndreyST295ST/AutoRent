@@ -14,7 +14,11 @@ class CarBase(BaseModel):
     color: Optional[str] = None
     transmission: Optional[str] = None
     fuel_type: Optional[str] = None
+    fuel_grade: Optional[str] = None
+    body_type: Optional[str] = None
+    drive_type: Optional[str] = None
     seats: Optional[int] = None
+    doors: Optional[int] = None
     price_per_day: float
     status: CarStatus = CarStatus.FREE
     description: Optional[str] = None
@@ -33,7 +37,11 @@ class CarUpdate(BaseModel):
     color: Optional[str] = None
     transmission: Optional[str] = None
     fuel_type: Optional[str] = None
+    fuel_grade: Optional[str] = None
+    body_type: Optional[str] = None
+    drive_type: Optional[str] = None
     seats: Optional[int] = None
+    doors: Optional[int] = None
     price_per_day: Optional[float] = None
     status: Optional[CarStatus] = None
     description: Optional[str] = None

@@ -1,4 +1,36 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  const buildLoginRedirectUrl = () => {
+    const next = encodeURIComponent(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`
+    );
+    return `/pages/Login.html?next=${next}`;
+  };
+
+  const ensureAuthorizedUser = async () => {
+    const localUser = window.Utils.getCurrentUser();
+    if (localUser) {
+      return localUser;
+    }
+
+    try {
+      if (window.authAPI?.me) {
+        const remoteUser = await window.authAPI.me();
+        window.Utils.setCurrentUser(remoteUser);
+        return remoteUser;
+      }
+    } catch (_) {
+      // ignore and redirect to login below
+    }
+
+    window.location.href = buildLoginRedirectUrl();
+    return null;
+  };
+
+  const user = await ensureAuthorizedUser();
+  if (!user) {
+    return;
+  }
+
   const statusContainer = document.getElementById("documentsStatus");
   const rentalContainer = document.getElementById("rentalDocuments");
   const uploadForm = document.getElementById("uploadForm");

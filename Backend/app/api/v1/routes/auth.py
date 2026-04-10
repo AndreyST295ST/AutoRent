@@ -41,7 +41,7 @@ async def _send_activation_email_or_raise(user: User, activation_token: str) -> 
     except Exception as exc:
         raise HTTPException(
             status_code=502,
-            detail="Failed to send activation email. Check SMTP settings and try again.",
+            detail="Не удалось отправить письмо с подтверждением. Проверьте настройки SMTP и повторите попытку.",
         ) from exc
 
 
