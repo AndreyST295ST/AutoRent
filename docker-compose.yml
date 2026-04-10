@@ -22,8 +22,11 @@
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_STARTTLS=${SMTP_STARTTLS:-True}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-False}
       - EMAIL_FROM=${EMAIL_FROM:-noreply@autorent.ru}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - BACKEND_PUBLIC_URL=${BACKEND_PUBLIC_URL:-http://localhost:8001}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost,http://127.0.0.1}
       - AUTH_COOKIE_NAME=${AUTH_COOKIE_NAME:-access_token}
       - CSRF_COOKIE_NAME=${CSRF_COOKIE_NAME:-csrf_token}
@@ -45,6 +48,9 @@
     depends_on:
       db:
         condition: service_healthy
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     networks:
       - autorent-network
     healthcheck:

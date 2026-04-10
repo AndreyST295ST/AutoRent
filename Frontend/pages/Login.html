@@ -66,6 +66,12 @@
         window.Utils.setCurrentUser(response.user);
         window.Utils.showNotification("success", "Успешный вход");
         setTimeout(() => {
+          const params = new URLSearchParams(window.location.search);
+          const next = params.get("next");
+          if (next && next.startsWith("/")) {
+            window.location.href = next;
+            return;
+          }
           const role = response?.user?.role;
           window.location.href =
             role === "admin" || role === "employee"

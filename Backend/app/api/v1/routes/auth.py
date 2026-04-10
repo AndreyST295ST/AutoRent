@@ -1,4 +1,5 @@
 import secrets
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,11 +9,13 @@ from app.config import settings
 from app.core.security import create_access_token
 from app.database import get_db
 from app.services.auth_service import AuthService
+from app.services.email_service import EmailService
 from models.user import User
 from schemas.user import (
     ActivationResponse,
     LoginRequest,
     RegisterResponse,
+    ResendActivationRequest,
     Token,
     UserCreate,
     UserResponse,
@@ -20,6 +23,26 @@ from schemas.user import (
 
 router = APIRouter()
 COOKIE_MAX_AGE_SECONDS = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+
+
+def _build_activation_link(token: str) -> str:
+    base = settings.BACKEND_PUBLIC_URL.rstrip("/")
+    return f"{base}/api/v1/auth/activate?token={quote(token)}"
+
+
+async def _send_activation_email_or_raise(user: User, activation_token: str) -> None:
+    email_service = EmailService()
+    try:
+        await email_service.send_activation_email(
+            recipient_email=user.email,
+            first_name=user.first_name,
+            activation_link=_build_activation_link(activation_token),
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="Failed to send activation email. Check SMTP settings and try again.",
+        ) from exc
 
 
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
@@ -30,11 +53,30 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     activation_required = bool(activation_token)
+    if activation_required and activation_token:
+        try:
+            await _send_activation_email_or_raise(user=user, activation_token=activation_token)
+        except HTTPException:
+            await service.delete_inactive_user(user.id)
+            raise
+
     return RegisterResponse(
         message="Account created successfully" if not activation_required else "Check your email to activate account",
         user_id=user.id,
         activation_required=activation_required,
     )
+
+
+@router.post("/resend-activation", response_model=ActivationResponse)
+async def resend_activation_email(payload: ResendActivationRequest, db: AsyncSession = Depends(get_db)):
+    service = AuthService(db)
+    try:
+        user, activation_token = await service.recreate_activation_token(payload.email)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    await _send_activation_email_or_raise(user=user, activation_token=activation_token)
+    return ActivationResponse(message="Activation email sent")
 
 
 @router.post("/login", response_model=Token)

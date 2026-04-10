@@ -44,6 +44,16 @@
       });
       const needsActivation = Boolean(registerResponse?.activation_required);
       if (modal) {
+        const title = modal.querySelector("#modalTitle");
+        const text = modal.querySelector("p");
+        if (title) {
+          title.textContent = needsActivation ? "Подтвердите email" : "Регистрация успешна!";
+        }
+        if (text) {
+          text.innerHTML = needsActivation
+            ? "Аккаунт создан.<br>Мы отправили письмо для подтверждения на вашу почту."
+            : "Ваш аккаунт создан и активирован.<br>Теперь можно войти в систему.";
+        }
         modal.style.display = "flex";
         modal.classList.add("modal--visible");
       } else {

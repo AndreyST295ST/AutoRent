@@ -1,20 +1,49 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  const buildLoginRedirectUrl = () => {
+    const next = encodeURIComponent(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`
+    );
+    return `/pages/Login.html?next=${next}`;
+  };
+
+  const ensureAuthorizedUser = async () => {
+    const localUser = window.Utils.getCurrentUser();
+    if (localUser) {
+      return localUser;
+    }
+
+    try {
+      if (window.authAPI?.me) {
+        const remoteUser = await window.authAPI.me();
+        window.Utils.setCurrentUser(remoteUser);
+        return remoteUser;
+      }
+    } catch (_) {
+      // ignore and redirect to login below
+    }
+
+    window.location.href = buildLoginRedirectUrl();
+    return null;
+  };
+
+  const user = await ensureAuthorizedUser();
+  if (!user) {
+    return;
+  }
+
   const links = document.querySelectorAll(".profile-nav__link");
   const sections = document.querySelectorAll(".profile-section");
-  const user = window.Utils.getCurrentUser();
   const MAX_DOC_FILES_PER_TYPE = 2;
 
-  if (user) {
-    const firstName = document.getElementById("firstName");
-    const lastName = document.getElementById("lastName");
-    const email = document.getElementById("email");
-    const phone = document.getElementById("phone");
+  const firstName = document.getElementById("firstName");
+  const lastName = document.getElementById("lastName");
+  const email = document.getElementById("email");
+  const phone = document.getElementById("phone");
 
-    if (firstName) firstName.value = user.first_name || user.firstName || "";
-    if (lastName) lastName.value = user.last_name || user.lastName || "";
-    if (email) email.value = user.email || "";
-    if (phone) phone.value = user.phone || "";
-  }
+  if (firstName) firstName.value = user.first_name || user.firstName || "";
+  if (lastName) lastName.value = user.last_name || user.lastName || "";
+  if (email) email.value = user.email || "";
+  if (phone) phone.value = user.phone || "";
 
   links.forEach((link) => {
     link.addEventListener("click", (e) => {

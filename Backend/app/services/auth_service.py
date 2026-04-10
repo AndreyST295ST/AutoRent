@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -49,6 +49,48 @@ class AuthService:
         await self.db.commit()
         await self.db.refresh(user)
         return user, token
+
+    async def recreate_activation_token(self, email: str) -> tuple[User, str]:
+        result = await self.db.execute(
+            select(User).where(func.lower(User.email) == (email or "").strip().lower())
+        )
+        user = result.scalar_one_or_none()
+        if not user:
+            raise ValueError("User not found")
+        if user.status == UserStatus.ACTIVE:
+            raise ValueError("Account is already active")
+
+        result = await self.db.execute(select(ActivationToken).where(ActivationToken.user_id == user.id))
+        activation_token = result.scalar_one_or_none()
+
+        token = str(uuid.uuid4())
+        expires_at = datetime.utcnow() + timedelta(hours=settings.ACTIVATION_TOKEN_EXPIRE_HOURS)
+        if activation_token is None:
+            activation_token = ActivationToken(
+                user_id=user.id,
+                token=token,
+                expires_at=expires_at,
+                is_used=False,
+            )
+            self.db.add(activation_token)
+        else:
+            activation_token.token = token
+            activation_token.expires_at = expires_at
+            activation_token.is_used = False
+
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user, token
+
+    async def delete_inactive_user(self, user_id: int) -> None:
+        user = await self.db.get(User, user_id)
+        if not user or user.status != UserStatus.INACTIVE:
+            return
+
+        await self.db.execute(delete(ActivationToken).where(ActivationToken.user_id == user_id))
+        await self.db.execute(delete(Client).where(Client.user_id == user_id))
+        await self.db.execute(delete(User).where(User.id == user_id))
+        await self.db.commit()
 
     async def activate_account(self, token: str) -> User:
         result = await self.db.execute(

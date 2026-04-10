@@ -26,9 +26,12 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
+    SMTP_STARTTLS: bool = True
+    SMTP_USE_TLS: bool = False
     EMAIL_FROM: str = "noreply@autorent.ru"
-    
+
     FRONTEND_URL: str = "http://localhost:3000"
+    BACKEND_PUBLIC_URL: str = "http://localhost:8001"
     AUTH_COOKIE_NAME: str = "access_token"
     CSRF_COOKIE_NAME: str = "csrf_token"
     CSRF_HEADER_NAME: str = "X-CSRF-Token"
@@ -75,6 +78,17 @@ class Settings(BaseSettings):
     @field_validator("SQL_ECHO", mode="before")
     @classmethod
     def parse_sql_echo(cls, value):
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"1", "true", "yes", "on"}:
+                return True
+            if normalized in {"0", "false", "no", "off"}:
+                return False
+        return value
+
+    @field_validator("SMTP_STARTTLS", "SMTP_USE_TLS", mode="before")
+    @classmethod
+    def parse_smtp_bool(cls, value):
         if isinstance(value, str):
             normalized = value.strip().lower()
             if normalized in {"1", "true", "yes", "on"}:

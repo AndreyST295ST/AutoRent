@@ -22,6 +22,10 @@ class LoginRequest(BaseModel):
     password: str = Field(..., min_length=1)
 
 
+class ResendActivationRequest(BaseModel):
+    email: EmailStr
+
+
 class UserUpdate(BaseModel):
     first_name: Optional[str] = Field(default=None, min_length=2, max_length=50)
     last_name: Optional[str] = Field(default=None, min_length=2, max_length=50)

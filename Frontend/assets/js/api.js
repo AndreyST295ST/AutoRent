@@ -181,6 +181,7 @@
     register: (data) => api.post("/auth/register", data),
     login: (data) => api.post("/auth/login", data),
     activate: (token) => api.get("/auth/activate", { token }),
+    resendActivation: (email) => api.post("/auth/resend-activation", { email }),
     logout: () => api.post("/auth/logout"),
     me: () => api.get("/auth/me"),
     updateProfile: (data) => api.put("/auth/profile", data),
