@@ -153,10 +153,10 @@ function createAlertContainer() {
 
 function getAlertIcon(type) {
   const icons = {
-    success: '✅',
-    error: '❌',
-    warning: '⚠️',
-    info: 'ℹ️'
+    success: '\u2705',
+    error: '\u274C',
+    warning: '\u26A0',
+    info: '\u2139'
   };
   return icons[type] || icons.info;
 }

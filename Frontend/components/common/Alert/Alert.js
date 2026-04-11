@@ -32,10 +32,10 @@ class Alert {
     const { type, message, title, dismissible } = this.props;
     
     const icons = {
-      info: 'ℹ️',
-      success: '✅',
-      warning: '⚠️',
-      error: '❌'
+      info: '\u2139',
+      success: '\u2705',
+      warning: '\u26A0',
+      error: '\u274C'
     };
 
     this.element.className = `alert alert--${type}`;

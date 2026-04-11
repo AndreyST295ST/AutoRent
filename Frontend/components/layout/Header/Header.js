@@ -25,26 +25,26 @@ class Header {
     this.element.innerHTML = `
       <div class="container header__container">
         <a href="/" class="logo" aria-label="AutoRent главная страница">
-          <span class="logo__icon" aria-hidden="true">🚗</span>
+          <span class="logo__icon" aria-hidden="true">&#128663;</span>
           <span class="logo__text">AutoRent</span>
         </a>
-        
+
         <nav class="nav" id="mainNav" role="navigation" aria-label="Основная навигация">
-          <a href="/pages/Catalog.html" class="nav__link">📋 Каталог</a>
-          <a href="/pages/MyBookings.html" class="nav__link">📅 Бронирования</a>
-          <a href="/pages/Profile.html" class="nav__link">👤 Профиль</a>
-          <a href="/pages/Admin.html" class="nav__link nav__link--admin" style="display:none">⚙️ Админка</a>
+          <a href="/pages/Catalog.html" class="nav__link">&#128203; Каталог</a>
+          <a href="/pages/MyBookings.html" class="nav__link">&#128197; Бронирования</a>
+          <a href="/pages/Profile.html" class="nav__link">&#128100; Профиль</a>
+          <a href="/pages/Admin.html" class="nav__link nav__link--admin" style="display:none">&#9881; Админка</a>
         </nav>
-        
+
         <div class="user-menu" id="userMenu" aria-live="polite"></div>
-        
-        <button 
-          class="btn btn--icon mobile-toggle" 
-          id="mobileToggle" 
-          aria-label="Меню" 
+
+        <button
+          class="btn btn--icon mobile-toggle"
+          id="mobileToggle"
+          aria-label="Меню"
           aria-expanded="false"
         >
-          ☰
+          &#9776;
         </button>
       </div>
     `;
@@ -58,7 +58,7 @@ class Header {
       mobileToggle.addEventListener('click', () => {
         const isOpen = nav.classList.toggle('nav--open');
         mobileToggle.setAttribute('aria-expanded', isOpen);
-        mobileToggle.textContent = isOpen ? '✕' : '☰';
+        mobileToggle.textContent = isOpen ? '\u2715' : '\u2630';
       });
     }
   }
@@ -105,7 +105,7 @@ class Header {
     if (userMenu) {
       userMenu.innerHTML = `
         <div class="user-info">
-          <span class="user-name">👋 ${user.firstName || user.email}</span>
+          <span class="user-name">${user.firstName || user.email}</span>
           <button class="btn btn--outline btn--sm" id="logoutBtn">Выйти</button>
         </div>
       `;

@@ -156,7 +156,7 @@
       button.setAttribute("aria-label", "Меню");
       button.setAttribute("aria-expanded", "false");
       button.setAttribute("aria-controls", this.nav.id);
-      button.textContent = "☰";
+      button.textContent = "\u2630";
 
       container.appendChild(button);
       this.mobileToggle = button;
@@ -167,7 +167,7 @@
       this.element?.classList.remove("header--mobile-open");
       this.nav.classList.remove("nav--open");
       this.mobileToggle.setAttribute("aria-expanded", "false");
-      this.mobileToggle.textContent = "☰";
+      this.mobileToggle.textContent = "\u2630";
     }
 
     attachEvents() {
@@ -176,7 +176,7 @@
           const isOpen = this.element?.classList.toggle("header--mobile-open");
           this.nav.classList.toggle("nav--open", Boolean(isOpen));
           this.mobileToggle.setAttribute("aria-expanded", String(isOpen));
-          this.mobileToggle.textContent = isOpen ? "✕" : "☰";
+          this.mobileToggle.textContent = isOpen ? "\u2715" : "\u2630";
         });
 
         this.nav.querySelectorAll("a").forEach((link) => {

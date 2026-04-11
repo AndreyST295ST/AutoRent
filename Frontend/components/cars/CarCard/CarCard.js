@@ -53,10 +53,10 @@ class CarCard {
         <h3 class="car-card__title">${this.car.brand} ${this.car.model}</h3>
         
         <div class="car-card__specs">
-          <span class="spec">📅 ${this.car.year}</span>
-          <span class="spec">⚙️ ${transmissionLabels[this.car.transmission] || this.car.transmission}</span>
-          <span class="spec">⛽ ${fuelLabels[this.car.fuelType] || this.car.fuelType}</span>
-          <span class="spec">👥 ${this.car.seats} мест</span>
+          <span class="spec">&#128197; ${this.car.year}</span>
+          <span class="spec">&#9881; ${transmissionLabels[this.car.transmission] || this.car.transmission}</span>
+          <span class="spec">&#9981; ${fuelLabels[this.car.fuelType] || this.car.fuelType}</span>
+          <span class="spec">&#128101; ${this.car.seats} мест</span>
         </div>
         
         <p class="car-card__description">${this.car.description || 'Комфортный автомобиль для ваших поездок'}</p>

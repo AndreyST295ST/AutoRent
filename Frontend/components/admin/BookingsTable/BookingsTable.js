@@ -69,10 +69,10 @@ class BookingsTable {
         <td>
           ${booking.status === 'pending_review' ? `
             <button class="btn btn--primary btn--sm" data-action="confirm" data-id="${booking.id}">
-              ✓ Подтвердить
+              \u2713 Подтвердить
             </button>
             <button class="btn btn--danger btn--sm" data-action="reject" data-id="${booking.id}">
-              ✕ Отклонить
+              \u2715 Отклонить
             </button>
           ` : `
             <button class="btn btn--outline btn--sm" data-action="view" data-id="${booking.id}">
@@ -82,7 +82,7 @@ class BookingsTable {
         </td>
         <td class="table-actions">
           <button class="btn btn--text btn--sm" data-action="view" data-id="${booking.id}">
-            📄 Документы
+            &#128196; Документы
           </button>
         </td>
       </tr>
